@@ -6,7 +6,7 @@ A FastMCP server that gives AI agents programmatic control over Android devices 
 
 ## Demo
 
-> Video demo coming soon. See the [full walkthrough](#) on YouTube.
+[![Agent Droid Bridge Demo](https://img.youtube.com/vi/otIWBBNe-VU/maxresdefault.jpg)](https://youtu.be/otIWBBNe-VU)
 
 ## Install
 
