@@ -1,0 +1,16 @@
+.cursor/
+venv/
+.env
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+dist/
+build/
+*.egg-info/
+.mypy_cache/
+*.log
+.DS_Store
+history_docs/
+RELEASE.md

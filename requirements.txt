@@ -1,0 +1,4 @@
+fastmcp
+pydantic
+pyyaml
+python-dotenv

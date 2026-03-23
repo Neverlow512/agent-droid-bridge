@@ -1,0 +1,10 @@
+adb:
+  path: adb
+  command_timeout: 30
+  screenshot_timeout: 60
+  allowed_shell_commands: []
+  ui_change_timeout: 10
+  ui_change_poll_interval: 0.5
+
+server:
+  log_level: INFO
