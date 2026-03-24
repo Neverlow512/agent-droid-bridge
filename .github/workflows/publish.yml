@@ -104,6 +104,9 @@ jobs:
       - name: Extract Version from Tag
         run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
 
+      - name: Wait for TestPyPI propagation
+        run: sleep 30
+
       - name: Install from TestPyPI
         run: |
           pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ agent-droid-bridge==${{ env.VERSION }}
