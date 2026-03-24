@@ -5,6 +5,7 @@
 | Requirement | Minimum version | Notes |
 |---|---|---|
 | Python | 3.11 | Must be available in your PATH |
+| uv | Latest | Required for `uvx` install. Install: `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
 | ADB (Android Debug Bridge) | Any recent | Install via Android SDK Platform-Tools or your OS package manager |
 | Android device or emulator | Any | USB debugging must be enabled; emulators connect automatically |
 
@@ -13,7 +14,10 @@
 | Platform | Command |
 |---|---|
 | macOS (Homebrew) | `brew install android-platform-tools` |
-| Ubuntu / Debian | `sudo apt install adb` |
+| Debian | `sudo apt install adb` |
+| Fedora | `sudo dnf install android-tools` |
+| Arch | `sudo pacman -S android-tools` |
+| Other Linux | Download [Android SDK Platform-Tools](https://developer.android.com/tools/releases/platform-tools) and add to PATH |
 | Windows | Download [Android SDK Platform-Tools](https://developer.android.com/tools/releases/platform-tools) and add to PATH |
 
 ## Installation
@@ -38,8 +42,16 @@ adb devices
 git clone https://github.com/Neverlow512/agent-droid-bridge.git
 cd agent-droid-bridge
 python3.11 -m venv venv
-venv/bin/python -m pip install -r requirements.txt
+venv/bin/pip install -e .
 ```
+
+To run the server directly:
+
+```bash
+venv/bin/python -m agent_droid_bridge.server
+```
+
+For the MCP client config when running from source, see the "From source" config block in the MCP configuration section below.
 
 ## MCP configuration
 
@@ -131,14 +143,30 @@ See [configuration.md](configuration.md) for the full YAML reference.
 
 ### uvx install
 
+Confirm the server starts and the help flag works:
+
 ```bash
 uvx agent-droid-bridge --help
+```
+
+This prints the available tools, environment variables, and documentation link, then exits. If it blocks instead of printing, the installed version predates `--help` support — run `uvx agent-droid-bridge` to start the server normally and verify it connects.
+
+To confirm the installed version:
+
+```bash
+uvx run --no-project agent-droid-bridge pip show agent-droid-bridge
 ```
 
 ### From source
 
 ```bash
-PYTHONPATH=src venv/bin/python -m agent_droid_bridge.server
+PYTHONPATH=src venv/bin/python -m agent_droid_bridge.server --help
 ```
 
-A successful start produces no output and the process blocks waiting for MCP messages over stdio.
+Same output as above. To start the server instead:
+
+```bash
+venv/bin/python -m agent_droid_bridge.server
+```
+
+A successful start produces no output and the process blocks waiting for MCP messages over stdio. Press `Ctrl+C` to stop it.

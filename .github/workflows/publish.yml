@@ -1,0 +1,121 @@
+# GitHub Actions workflow to build and publish agent-droid-bridge to PyPI
+#
+# Required GitHub Secrets:
+#   - PYPI_TOKEN: API token for production PyPI (fallback if OIDC fails)
+#   - TEST_PYPI_TOKEN: API token for TestPyPI (fallback if OIDC fails)
+#
+# Note: This workflow uses OIDC trusted publishing as the primary method.
+# Configure trusted publishing at:
+#   - PyPI: https://pypi.org/manage/account/publishing/
+#   - TestPyPI: https://test.pypi.org/manage/account/publishing/
+
+name: Build and Publish to PyPI
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Skip publishing, only run build"
+        type: boolean
+        default: false
+        required: false
+
+jobs:
+  build:
+    name: Build Distribution Packages
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Build Dependencies
+        run: pip install hatchling
+
+      - name: Build Wheel and SDist
+        run: python -m hatchling build
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
+
+  publish-testpypi:
+    name: Publish to TestPyPI
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.dry_run }}
+
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/agent-droid-bridge
+
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to TestPyPI via OIDC
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          print-hash: true
+        continue-on-error: true
+        id: oidc-publish
+
+      - name: Publish to TestPyPI via Token (Fallback)
+        if: steps.oidc-publish.outcome == 'failure'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          password: ${{ secrets.TEST_PYPI_TOKEN }}
+          print-hash: true
+
+  publish-pypi:
+    name: Publish to PyPI
+    needs: publish-testpypi
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.dry_run }}
+
+    environment:
+      name: pypi
+      url: https://pypi.org/p/agent-droid-bridge
+
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to PyPI via OIDC
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          print-hash: true
+        continue-on-error: true
+        id: oidc-publish
+
+      - name: Publish to PyPI via Token (Fallback)
+        if: steps.oidc-publish.outcome == 'failure'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_TOKEN }}
+          print-hash: true

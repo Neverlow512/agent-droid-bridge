@@ -124,6 +124,8 @@ Takes a lightweight snapshot of the current UI state and returns a short token. 
 
 *Returns: a 16-character hex token representing the current UI state.*
 
+Tokens are scoped to the server process lifetime. If the server restarts between `snapshot_ui` and `detect_ui_change`, the token will not be recognised and `detect_ui_change` will capture a fresh baseline instead.
+
 *Example: "Capture a baseline before tapping a button."*
 
 ## detect_ui_change

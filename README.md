@@ -2,13 +2,31 @@
 
 # Agent Droid Bridge
 
-A FastMCP server that gives AI agents programmatic control over Android devices and emulators via ADB.
+Agent Droid Bridge is an MCP server that connects AI agents to Android devices and emulators over ADB. It is built for mobile automation, app testing, dynamic analysis, and reverse engineering: exposing the full surface of ADB as structured tools that any MCP-compatible AI client can call directly. If ADB can do it, an agent can do it.
 
 ## Demo
 
 [![Agent Droid Bridge Demo](https://img.youtube.com/vi/otIWBBNe-VU/maxresdefault.jpg)](https://youtu.be/otIWBBNe-VU)
 
 [![agent-droid-bridge MCP server](https://glama.ai/mcp/servers/Neverlow512/agent-droid-bridge/badges/card.svg)](https://glama.ai/mcp/servers/Neverlow512/agent-droid-bridge)
+
+The demo above runs through a few straightforward tasks to show what a connected agent can do, and this is just scratching the surface:
+
+- Installs the Paint app, opens it, and draws a house by calculating pixel coordinates for the walls and roof
+- Opens the device browser, searches for "MCP Wikipedia", navigates to the result page, and takes a screenshot
+- Opens the Calculator, computes 1337 × 42, and extracts the result to the host machine
+- Opens Contacts, creates a new entry with a name and phone number, and confirms it saved
+- Opens the Calendar and schedules an appointment for a specific date
+- Opens Settings and toggles dark mode
+- Extracts the Calculator APK from the device to the host machine
+- Installs Notepad, writes a one-sentence summary of every task completed, and takes a final screenshot
+
+## What it does
+
+- Exposes 11 MCP tools covering screen capture, UI inspection, touch and swipe input, text entry, keycode events, app launching, and arbitrary ADB commands
+- Auto-detects the connected device when only one is present; presents a device list and requires the user to choose when multiple are connected
+- All commands parsed via `shlex` — no shell injection possible
+- Runs over stdio, compatible with any MCP-capable AI client
 
 ## Install
 
@@ -18,12 +36,11 @@ uvx agent-droid-bridge
 
 No cloning or virtual environments needed. Requires Python 3.11+ and ADB installed on your host.
 
-## What it does
+`uvx` is provided by [uv](https://docs.astral.sh/uv/). If you don't have it: `curl -LsSf https://astral.sh/uv/install.sh | sh`
 
-- Exposes 11 MCP tools covering screen interaction, UI inspection, text input, and arbitrary ADB commands
-- Auto-detects the connected device when only one is present; presents a device list and requires the user to choose when multiple are connected
-- Parses all commands safely via `shlex` — no shell injection possible
-- Runs over stdio, making it compatible with any MCP-capable AI client
+To install from source instead, see [docs/setup.md — Option B](docs/setup.md#option-b--from-source).
+
+To verify the install: `uvx agent-droid-bridge --help`
 
 ## Quick start
 
@@ -75,3 +92,7 @@ Full parameter reference: [docs/tools.md](docs/tools.md)
 | [docs/setup.md](docs/setup.md) | Prerequisites, installation, and MCP client configuration |
 | [docs/tools.md](docs/tools.md) | Full parameter reference for all 11 tools |
 | [docs/configuration.md](docs/configuration.md) | Reference for `adb_config.yaml` and environment variables |
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Neverlow512/agent-droid-bridge&type=Date)](https://star-history.com/#Neverlow512/agent-droid-bridge&Date)
