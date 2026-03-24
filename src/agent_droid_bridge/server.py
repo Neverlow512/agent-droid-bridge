@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import logging
 import struct
+import sys
 from typing import Annotated
 
 from fastmcp import FastMCP
@@ -315,7 +316,27 @@ async def detect_ui_change(
         raise ToolError("Failed to detect UI change")
 
 
+_HELP = """\
+Agent Droid Bridge - MCP server for Android device control via ADB
+
+Usage:
+  uvx agent-droid-bridge          Start the MCP server (stdio transport)
+  agent-droid-bridge --help       Show this message and exit
+
+Environment variables:
+  ADB_EXECUTION_MODE    unrestricted (default) | restricted
+  ADB_ALLOW_SHELL       true (default) | false
+  ADB_CONFIG_PATH       Path to a custom adb_config.yaml
+
+Documentation:
+  https://github.com/Neverlow512/agent-droid-bridge
+"""
+
+
 def main() -> None:
+    if "--help" in sys.argv or "-h" in sys.argv:
+        print(_HELP, end="")
+        sys.exit(0)
     mcp.run()
 
 

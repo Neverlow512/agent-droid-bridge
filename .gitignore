@@ -14,3 +14,4 @@ build/
 .DS_Store
 history_docs/
 RELEASE.md
+test_pypi_install/
