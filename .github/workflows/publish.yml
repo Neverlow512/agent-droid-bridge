@@ -11,6 +11,9 @@
 
 name: Build and Publish to PyPI
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   push:
     tags:
@@ -86,9 +89,34 @@ jobs:
           password: ${{ secrets.TEST_PYPI_TOKEN }}
           print-hash: true
 
+  smoke-test:
+    name: Smoke Test from TestPyPI
+    needs: publish-testpypi
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.dry_run }}
+
+    steps:
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Extract Version from Tag
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
+
+      - name: Install from TestPyPI
+        run: |
+          pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ agent-droid-bridge==${{ env.VERSION }}
+
+      - name: Verify --help Works
+        run: agent-droid-bridge --help
+
+      - name: Verify Output Contains "Agent Droid Bridge"
+        run: agent-droid-bridge --help | grep -q "Agent Droid Bridge"
+
   publish-pypi:
     name: Publish to PyPI
-    needs: publish-testpypi
+    needs: smoke-test
     runs-on: ubuntu-latest
     if: ${{ !inputs.dry_run }}
 
@@ -119,3 +147,32 @@ jobs:
         with:
           password: ${{ secrets.PYPI_TOKEN }}
           print-hash: true
+
+  create-github-release:
+    name: Create GitHub Release
+    needs: publish-pypi
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.dry_run }}
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body: |
+            See [CHANGELOG](https://github.com/Neverlow512/agent-droid-bridge/blob/main/README.md) for details.
+
+            Install: `uvx agent-droid-bridge`
+          draft: false
+          prerelease: false
+          files: dist/*
