@@ -1,13 +1,8 @@
 # GitHub Actions workflow to build and publish agent-droid-bridge to PyPI
 #
 # Required GitHub Secrets:
-#   - PYPI_TOKEN: API token for production PyPI (fallback if OIDC fails)
-#   - TEST_PYPI_TOKEN: API token for TestPyPI (fallback if OIDC fails)
-#
-# Note: This workflow uses OIDC trusted publishing as the primary method.
-# Configure trusted publishing at:
-#   - PyPI: https://pypi.org/manage/account/publishing/
-#   - TestPyPI: https://test.pypi.org/manage/account/publishing/
+#   - PYPI_TOKEN: API token for production PyPI
+#   - TEST_PYPI_TOKEN: API token for TestPyPI
 
 name: Build and Publish to PyPI
 
@@ -63,9 +58,6 @@ jobs:
       name: testpypi
       url: https://test.pypi.org/p/agent-droid-bridge
 
-    permissions:
-      id-token: write
-
     steps:
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
@@ -73,16 +65,7 @@ jobs:
           name: dist
           path: dist/
 
-      - name: Publish to TestPyPI via OIDC
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository-url: https://test.pypi.org/legacy/
-          print-hash: true
-        continue-on-error: true
-        id: oidc-publish
-
-      - name: Publish to TestPyPI via Token (Fallback)
-        if: steps.oidc-publish.outcome == 'failure'
+      - name: Publish to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
@@ -127,9 +110,6 @@ jobs:
       name: pypi
       url: https://pypi.org/p/agent-droid-bridge
 
-    permissions:
-      id-token: write
-
     steps:
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
@@ -137,15 +117,7 @@ jobs:
           name: dist
           path: dist/
 
-      - name: Publish to PyPI via OIDC
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          print-hash: true
-        continue-on-error: true
-        id: oidc-publish
-
-      - name: Publish to PyPI via Token (Fallback)
-        if: steps.oidc-publish.outcome == 'failure'
+      - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_TOKEN }}
@@ -179,3 +151,34 @@ jobs:
           draft: false
           prerelease: false
           files: dist/*
+
+  publish-mcp-registry:
+    name: Publish to MCP Registry
+    needs: publish-pypi
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.dry_run }}
+    continue-on-error: true
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Extract Version from Tag
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
+
+      - name: Update server.json version
+        run: sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$VERSION\"/g" server.json
+
+      - name: Install mcp-publisher CLI
+        run: |
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
+          sudo mv mcp-publisher /usr/local/bin/
+
+      - name: Authenticate with MCP Registry
+        run: mcp-publisher login github-oidc
+
+      - name: Publish to MCP Registry
+        run: mcp-publisher publish

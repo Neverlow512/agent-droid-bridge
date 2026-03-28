@@ -93,6 +93,13 @@ Full parameter reference: [docs/tools.md](docs/tools.md)
 | [docs/tools.md](docs/tools.md) | Full parameter reference for all 11 tools |
 | [docs/configuration.md](docs/configuration.md) | Reference for `adb_config.yaml` and environment variables |
 
+## Contributing
+
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on setup, code standards, and submitting pull requests.
+
+To report a security vulnerability, follow the process in [SECURITY.md](SECURITY.md) — do not open a public issue.
+
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=Neverlow512/agent-droid-bridge&type=Date)](https://star-history.com/#Neverlow512/agent-droid-bridge&Date)
+<!-- mcp-name: io.github.Neverlow512/agent-droid-bridge -->
