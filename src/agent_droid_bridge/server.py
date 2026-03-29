@@ -12,7 +12,13 @@ from pydantic import Field
 
 from .adb import ADBError, ADBService
 from .config import get_settings
-from .models import DeviceInfo, ScreenshotResult, UIChangeResult
+from .models import (
+    DeviceInfo,
+    ScreenElementsResult,
+    ScreenshotResult,
+    ScreenTextResult,
+    UIChangeResult,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +63,10 @@ async def get_ui_hierarchy(device_serial: DeviceSerial = None) -> str:
         raise ToolError(str(e)) from e
     except Exception:
         logger.exception("get_ui_hierarchy failed")
-        raise ToolError("Failed to retrieve UI hierarchy")
+        raise ToolError(
+            "Failed to retrieve UI hierarchy"
+            " — ensure a device is connected and the screen is unlocked"
+        )
 
 
 @mcp.tool()
@@ -180,7 +189,7 @@ async def list_devices() -> list[DeviceInfo]:
         raise ToolError(str(e)) from e
     except Exception:
         logger.exception("list_devices failed")
-        raise ToolError("Failed to list devices")
+        raise ToolError("Failed to list devices — ensure ADB is installed and on PATH")
 
 
 @mcp.tool()
@@ -314,6 +323,74 @@ async def detect_ui_change(
     except Exception:
         logger.exception("detect_ui_change failed")
         raise ToolError("Failed to detect UI change")
+
+
+@mcp.tool()
+async def get_screen_elements(
+    mode: Annotated[
+        str,
+        Field(
+            default="tappable",
+            pattern=r"^(tappable|interactive|input|all)$",
+            description=(
+                "Controls which elements are returned and how much detail each carries. "
+                "'tappable' (default): only clickable, focusable, or scrollable elements "
+                "with minimal fields (resource ID, text, content description, centre "
+                "coordinates) — best for quick navigation when you need tap targets, "
+                "lowest token cost. "
+                "'interactive': same element filter as tappable but returns full detail "
+                "including XPath, bounds, class name, and all boolean state flags — use "
+                "when you need to construct precise ADB commands or distinguish elements "
+                "by type. "
+                "'input': only editable text fields (EditText and similar) with full "
+                "detail — use when you need to find fields to type into. "
+                "On Compose-based apps, input fields may not be detected; "
+                "use 'interactive' mode instead and look for focusable elements. "
+                "'all': every element in the UI tree with full detail — use only for "
+                "security analysis or when other modes miss what you need, as output "
+                "can be large."
+            ),
+        ),
+    ] = "tappable",
+    device_serial: DeviceSerial = None,
+) -> ScreenElementsResult:
+    """Structured list of UI elements currently visible on the Android screen.
+
+    Returns elements filtered and shaped by the chosen mode. Prefer 'tappable' for
+    navigation and 'interactive' when you need XPath or bounds for ADB commands.
+    Only use 'all' as a last resort — it returns every node and can be large.
+    """
+    try:
+        return await adb.get_screen_elements(device_serial, mode)
+    except ADBError as e:
+        raise ToolError(str(e)) from e
+    except Exception:
+        logger.exception("get_screen_elements failed")
+        raise ToolError(
+            "Failed to retrieve screen elements"
+            " — ensure a device is connected and the screen is unlocked"
+        )
+
+
+@mcp.tool()
+async def get_screen_text(
+    device_serial: DeviceSerial = None,
+) -> ScreenTextResult:
+    """Returns all visible text on the current Android screen, sorted top-to-bottom.
+
+    Use this when you need to read what is on screen. Does not include coordinates
+    or element info — for tapping or interacting, use `get_screen_elements`.
+    """
+    try:
+        return await adb.get_screen_text(device_serial)
+    except ADBError as e:
+        raise ToolError(str(e)) from e
+    except Exception:
+        logger.exception("get_screen_text failed")
+        raise ToolError(
+            "Failed to extract screen text"
+            " — ensure a device is connected and the screen is unlocked"
+        )
 
 
 _HELP = """\

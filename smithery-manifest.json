@@ -1,0 +1,20 @@
+{
+  "manifest_version": "0.1",
+  "name": "agent-droid-bridge",
+  "version": "0.1.3",
+  "description": "MCP server giving AI agents eyes and hands inside Android devices via ADB",
+  "author": "Neverlow512",
+  "license": "MIT",
+  "homepage": "https://github.com/Neverlow512/agent-droid-bridge",
+  "server": {
+    "type": "python",
+    "mcp_config": {
+      "command": "uvx",
+      "args": ["agent-droid-bridge"],
+      "env": {
+        "ADB_EXECUTION_MODE": "unrestricted",
+        "ADB_ALLOW_SHELL": "true"
+      }
+    }
+  }
+}
