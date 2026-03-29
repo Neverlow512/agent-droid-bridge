@@ -3,7 +3,6 @@
 # Required GitHub Secrets:
 #   - PYPI_TOKEN: API token for production PyPI
 #   - TEST_PYPI_TOKEN: API token for TestPyPI
-#   - SMITHERY_API_KEY: API token for Smithery registry
 
 name: Build and Publish to PyPI
 
@@ -228,39 +227,3 @@ jobs:
 
       - name: Publish to MCP Registry
         run: mcp-publisher publish
-
-  publish-smithery:
-    name: Publish to Smithery
-    needs: publish-pypi
-    runs-on: ubuntu-latest
-    if: ${{ !inputs.dry_run }}
-    continue-on-error: true
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Extract Version from Tag
-        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
-
-      - name: Update smithery-manifest.json version
-        run: |
-          python3 -c "
-          import json, os
-          with open('smithery-manifest.json') as f:
-              data = json.load(f)
-          data['version'] = os.environ['VERSION']
-          with open('smithery-manifest.json', 'w') as f:
-              json.dump(data, f, indent=2)
-              f.write('\n')
-          "
-
-      - name: Create MCPB bundle
-        run: zip agent-droid-bridge.mcpb smithery-manifest.json
-
-      - name: Publish to Smithery
-        run: |
-          curl -X PUT "https://api.smithery.ai/servers/Neverlow512%2Fagent-droid-bridge/releases" \
-            -H "Authorization: Bearer ${{ secrets.SMITHERY_API_KEY }}" \
-            -F "payload={\"type\":\"stdio\",\"version\":\"$VERSION\"}" \
-            -F "bundle=@agent-droid-bridge.mcpb"
