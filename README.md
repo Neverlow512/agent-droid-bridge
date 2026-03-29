@@ -1,4 +1,4 @@
-![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue?style=flat-square) ![License MIT](https://img.shields.io/badge/license-MIT-green?style=flat-square) ![MCP Compatible](https://img.shields.io/badge/MCP-compatible-purple?style=flat-square) [![PyPI](https://img.shields.io/pypi/v/agent-droid-bridge?style=flat-square&cacheSeconds=300)](https://pypi.org/project/agent-droid-bridge/) [![Glama](https://glama.ai/mcp/servers/Neverlow512/agent-droid-bridge/badges/score.svg)](https://glama.ai/mcp/servers/Neverlow512/agent-droid-bridge) [![MCP Registry](https://img.shields.io/badge/MCP%20Registry-listed-blue?style=flat-square)](https://vemonet.github.io/mcp-registry/?search=agent-droid-bridge)
+![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue?style=flat-square) ![License MIT](https://img.shields.io/badge/license-MIT-green?style=flat-square) ![MCP Compatible](https://img.shields.io/badge/MCP-compatible-purple?style=flat-square) [![PyPI](https://img.shields.io/pypi/v/agent-droid-bridge?style=flat-square&cacheSeconds=300)](https://pypi.org/project/agent-droid-bridge/) [![MCP Registry](https://img.shields.io/badge/MCP%20Registry-listed-orange?style=flat-square)](https://vemonet.github.io/mcp-registry/?search=agent-droid-bridge)
 
 # Agent Droid Bridge
 
@@ -6,13 +6,11 @@ Agent Droid Bridge is an MCP server that connects AI agents to Android devices a
 
 > Note: Purpose-built tools return structured, minimal responses instead of raw XML dumps, keeping agent workflows fast and context consumption low, while keeping performance high.
 
-Listed on [Glama](https://glama.ai/mcp/servers/Neverlow512/agent-droid-bridge) and [MCP Registry](https://vemonet.github.io/mcp-registry/?search=agent-droid-bridge).
+[![agent-droid-bridge MCP server](https://glama.ai/mcp/servers/Neverlow512/agent-droid-bridge/badges/card.svg)](https://glama.ai/mcp/servers/Neverlow512/agent-droid-bridge)
 
 ## Demo
 
 [![Agent Droid Bridge Demo](https://img.youtube.com/vi/otIWBBNe-VU/maxresdefault.jpg)](https://youtu.be/otIWBBNe-VU)
-
-[![agent-droid-bridge MCP server](https://glama.ai/mcp/servers/Neverlow512/agent-droid-bridge/badges/card.svg)](https://glama.ai/mcp/servers/Neverlow512/agent-droid-bridge)
 
 The demo above runs through a few straightforward tasks to show what a connected agent can do, and this is just scratching the surface:
 
