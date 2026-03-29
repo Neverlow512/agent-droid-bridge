@@ -1,4 +1,4 @@
-Python 3.11+ License MIT MCP Compatible [PyPI](https://pypi.org/project/agent-droid-bridge/) [Glama](https://glama.ai/mcp/servers/Neverlow512/agent-droid-bridge)
+![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue?style=flat-square) ![License MIT](https://img.shields.io/badge/license-MIT-green?style=flat-square) ![MCP Compatible](https://img.shields.io/badge/MCP-compatible-purple?style=flat-square) [![PyPI](https://img.shields.io/pypi/v/agent-droid-bridge?style=flat-square&cacheSeconds=300)](https://pypi.org/project/agent-droid-bridge/) [![Glama](https://glama.ai/mcp/servers/Neverlow512/agent-droid-bridge/badges/score.svg)](https://glama.ai/mcp/servers/Neverlow512/agent-droid-bridge) [![MCP Registry](https://img.shields.io/badge/MCP%20Registry-listed-blue?style=flat-square)](https://vemonet.github.io/mcp-registry/?search=agent-droid-bridge)
 
 # Agent Droid Bridge
 
@@ -10,9 +10,9 @@ Listed on [Glama](https://glama.ai/mcp/servers/Neverlow512/agent-droid-bridge) a
 
 ## Demo
 
-[Agent Droid Bridge Demo](https://youtu.be/otIWBBNe-VU)
+[![Agent Droid Bridge Demo](https://img.youtube.com/vi/otIWBBNe-VU/maxresdefault.jpg)](https://youtu.be/otIWBBNe-VU)
 
-[agent-droid-bridge MCP server](https://glama.ai/mcp/servers/Neverlow512/agent-droid-bridge)
+[![agent-droid-bridge MCP server](https://glama.ai/mcp/servers/Neverlow512/agent-droid-bridge/badges/card.svg)](https://glama.ai/mcp/servers/Neverlow512/agent-droid-bridge)
 
 The demo above runs through a few straightforward tasks to show what a connected agent can do, and this is just scratching the surface:
 
@@ -112,5 +112,6 @@ To report a security vulnerability, follow the process in [SECURITY.md](SECURITY
 
 ## Star History
 
-[Star History Chart](https://star-history.com/#Neverlow512/agent-droid-bridge&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=Neverlow512/agent-droid-bridge&type=Date)](https://star-history.com/#Neverlow512/agent-droid-bridge&Date)
+<!-- mcp-name: io.github.Neverlow512/agent-droid-bridge -->
 
