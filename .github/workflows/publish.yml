@@ -3,6 +3,7 @@
 # Required GitHub Secrets:
 #   - PYPI_TOKEN: API token for production PyPI
 #   - TEST_PYPI_TOKEN: API token for TestPyPI
+#   - SMITHERY_API_KEY: API token for Smithery registry
 
 name: Build and Publish to PyPI
 
@@ -22,9 +23,32 @@ on:
         required: false
 
 jobs:
+  guard:
+    name: Verify Tag is on Main
+    runs-on: ubuntu-latest
+    outputs:
+      on_main: ${{ steps.check.outputs.on_main }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if commit is on main
+        id: check
+        run: |
+          if git branch -r --contains "$GITHUB_SHA" | grep -q 'origin/main'; then
+            echo "on_main=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "on_main=false" >> "$GITHUB_OUTPUT"
+          fi
+
   build:
     name: Build Distribution Packages
     runs-on: ubuntu-latest
+    needs: guard
+    if: needs.guard.outputs.on_main == 'true'
 
     steps:
       - name: Checkout Repository
@@ -133,21 +157,33 @@ jobs:
       contents: write
 
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist/
 
+      - name: Extract Changelog for This Version
+        id: changelog
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          BODY=$(awk "/^## v${VERSION}/,/^## v[0-9]/" CHANGELOG.md | head -n -1)
+          if [ -z "$BODY" ]; then
+            BODY="See [CHANGELOG](https://github.com/Neverlow512/agent-droid-bridge/blob/main/CHANGELOG.md) for details."
+          fi
+          echo "body<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$BODY" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
-          body: |
-            See [CHANGELOG](https://github.com/Neverlow512/agent-droid-bridge/blob/main/README.md) for details.
-
-            Install: `uvx agent-droid-bridge`
+          body: ${{ steps.changelog.outputs.body }}
           draft: false
           prerelease: false
           files: dist/*
@@ -192,3 +228,39 @@ jobs:
 
       - name: Publish to MCP Registry
         run: mcp-publisher publish
+
+  publish-smithery:
+    name: Publish to Smithery
+    needs: publish-pypi
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.dry_run }}
+    continue-on-error: true
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Extract Version from Tag
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
+
+      - name: Update smithery-manifest.json version
+        run: |
+          python3 -c "
+          import json, os
+          with open('smithery-manifest.json') as f:
+              data = json.load(f)
+          data['version'] = os.environ['VERSION']
+          with open('smithery-manifest.json', 'w') as f:
+              json.dump(data, f, indent=2)
+              f.write('\n')
+          "
+
+      - name: Create MCPB bundle
+        run: zip agent-droid-bridge.mcpb smithery-manifest.json
+
+      - name: Publish to Smithery
+        run: |
+          curl -X PUT "https://api.smithery.ai/servers/Neverlow512%2Fagent-droid-bridge/releases" \
+            -H "Authorization: Bearer ${{ secrets.SMITHERY_API_KEY }}" \
+            -F "payload={\"type\":\"stdio\",\"version\":\"$VERSION\"}" \
+            -F "bundle=@agent-droid-bridge.mcpb"

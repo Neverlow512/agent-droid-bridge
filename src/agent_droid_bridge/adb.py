@@ -6,8 +6,11 @@ import logging
 import re
 import shlex
 import time
+import xml.etree.ElementTree as ET
 
 from .config import DEVICE_SERIAL_PATTERN, Settings
+from .models import ScreenElementsResult, ScreenTextResult
+from .ui_parser import parse_elements, parse_screen_text
 
 logger = logging.getLogger(__name__)
 
@@ -168,7 +171,11 @@ class ADBService:
         for marker in ("<?xml", "<hierarchy"):
             idx = output.find(marker)
             if idx != -1:
-                return output[idx:].strip()
+                sliced = output[idx:]
+                end = sliced.rfind("</hierarchy>")
+                if end != -1:
+                    return sliced[: end + len("</hierarchy>")]
+                return sliced.strip()
         return output.strip()
 
     async def tap_screen(self, x: int, y: int, device_serial: str | None = None) -> str:
@@ -261,6 +268,25 @@ class ADBService:
         cmd = base + (["shell"] + parts if use_shell else parts)
         stdout, _ = await self._run(cmd)
         return stdout.decode("utf-8", errors="replace")
+
+    async def get_screen_elements(
+        self, device_serial: str | None, mode: str
+    ) -> ScreenElementsResult:
+        xml = await self.get_ui_hierarchy(device_serial)
+        try:
+            elements = parse_elements(xml, mode)
+        except ValueError as e:
+            raise ADBError(str(e)) from e
+        except ET.ParseError as e:
+            raise ADBError("Failed to parse UI hierarchy XML") from e
+        return ScreenElementsResult(mode=mode, total=len(elements), elements=elements)
+
+    async def get_screen_text(self, serial: str | None) -> ScreenTextResult:
+        xml = await self.get_ui_hierarchy(serial)
+        try:
+            return parse_screen_text(xml)
+        except ET.ParseError as e:
+            raise ADBError("Failed to parse UI hierarchy XML") from e
 
     async def detect_ui_change(
         self,

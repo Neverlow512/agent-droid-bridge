@@ -2,6 +2,7 @@ import pytest
 
 from src.agent_droid_bridge.adb import ADBError, ADBService
 from src.agent_droid_bridge.config import Settings
+from src.agent_droid_bridge.models import ScreenTextResult
 
 
 @pytest.fixture(scope="session")
@@ -216,6 +217,31 @@ class TestAllowlistEnforcement:
         assert isinstance(result, str)
 
 
+class TestGetScreenElements:
+    async def test_tappable_returns_result(self, adb_service: ADBService) -> None:
+        result = await adb_service.get_screen_elements(device_serial=None, mode="tappable")
+        assert result.mode == "tappable"
+        assert result.total == len(result.elements)
+
+    async def test_interactive_has_xpath(self, adb_service: ADBService) -> None:
+        result = await adb_service.get_screen_elements(device_serial=None, mode="interactive")
+        if result.elements:
+            from src.agent_droid_bridge.models import ScreenElement
+
+            first = result.elements[0]
+            assert isinstance(first, ScreenElement)
+            assert first.xpath
+
+    async def test_all_gte_tappable(self, adb_service: ADBService) -> None:
+        tappable = await adb_service.get_screen_elements(device_serial=None, mode="tappable")
+        all_result = await adb_service.get_screen_elements(device_serial=None, mode="all")
+        assert all_result.total >= tappable.total
+
+    async def test_invalid_mode_raises(self, adb_service: ADBService) -> None:
+        with pytest.raises(ADBError):
+            await adb_service.get_screen_elements(device_serial=None, mode="bogus")
+
+
 class TestSnapshotUI:
     async def test_snapshot_returns_16_char_token(self, adb_service: ADBService) -> None:
         token = await adb_service.snapshot_ui()
@@ -246,3 +272,14 @@ class TestSnapshotUI:
         await adb_service.snapshot_ui()
         assert len(adb_service._snapshots) == 100
         assert "fake_token_0000" not in adb_service._snapshots
+
+
+class TestGetScreenText:
+    async def test_returns_result(self, adb_service: ADBService) -> None:
+        result = await adb_service.get_screen_text(serial=None)
+        assert isinstance(result, ScreenTextResult)
+        assert result.total > 0
+
+    async def test_plain_non_empty(self, adb_service: ADBService) -> None:
+        result = await adb_service.get_screen_text(serial=None)
+        assert len(result.plain) > 0

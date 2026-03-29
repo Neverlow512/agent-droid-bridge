@@ -10,6 +10,7 @@ from pydantic import BaseModel, field_validator
 
 DEVICE_SERIAL_PATTERN = re.compile(r"^[a-zA-Z0-9\-:.]+$")
 
+
 def _resolve_config_path() -> Path:
     env_path = os.environ.get("ADB_CONFIG_PATH")
     if env_path:

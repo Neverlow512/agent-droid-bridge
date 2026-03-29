@@ -2,6 +2,15 @@
 
 All tools accept an optional `device_serial` parameter. When omitted, the server auto-detects the connected device. When multiple devices are connected and no serial is provided, the tool returns a device list — present it to the user and wait for their choice before proceeding.
 
+## Choosing the right tool
+
+| Goal | Tool |
+|---|---|
+| Read labels, values, or messages visible on screen | `get_screen_text` |
+| Find tap targets or get coordinates to interact with elements | `get_screen_elements` |
+| Inspect the full raw XML structure | `get_ui_hierarchy` |
+| Confirm a screen transition happened after an action | `snapshot_ui` + `detect_ui_change` |
+
 ## get_ui_hierarchy
 
 Returns the current Android screen as an XML UI hierarchy. Each node includes bounds, resource-id, text, content-desc, and class attributes.
@@ -116,7 +125,7 @@ Returns all Android devices currently visible to ADB.
 
 ## snapshot_ui
 
-Takes a lightweight snapshot of the current UI state and returns a short token. Use this before performing an action when you only need to confirm the screen changed afterward — not read its content. Pass the token to `detect_ui_change` as `baseline_token`. Do not use this when you need to read or interact with screen elements — use `get_ui_hierarchy` for that.
+Takes a lightweight snapshot of the current UI state and returns a short token. Use this before performing an action when you only need to confirm the screen changed afterward — not read its content. Pass the token to `detect_ui_change` as `baseline_token`. Do not use this when you need to read or interact with screen elements — use `get_screen_text` or `get_screen_elements` to read or interact with screen elements; use `get_ui_hierarchy` for the raw structure.
 
 | Parameter | Type | Required | Default | Description |
 |---|---|---|---|---|
@@ -142,3 +151,37 @@ Polls the UI hierarchy after an action and returns when the screen content chang
 *Returns: `changed` (bool), `elapsed_seconds` (float), `hierarchy` (XML string, only when `return_hierarchy` is `true`).*
 
 *Example: "Tap the button and wait for the screen to change."*
+
+## get_screen_elements
+
+Returns a structured list of UI elements currently visible on the Android screen. Elements are filtered and shaped by the chosen mode. Prefer `tappable` for navigation; use `interactive` when you need XPath or bounds for precise ADB commands. Only use `all` when other modes miss what you need — it returns every node and can be large.
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `mode` | string | No | `tappable` | Controls which elements are returned and how much detail each carries. Options: `tappable`, `interactive`, `input`, `all` (see below) |
+| `device_serial` | string | No | auto-detect | Android device serial (pattern: `^[a-zA-Z0-9\-:.]+$`, max 64 chars) |
+
+**Mode options:**
+
+| Mode | Elements returned | Detail level |
+|---|---|---|
+| `tappable` | Clickable or long-clickable enabled elements (apps, buttons, list items) | Minimal: `resource_id`, `text`, `content_desc`, `center_x`, `center_y` |
+| `interactive` | All focusable, scrollable, or input-capable elements | Full: XPath, bounds, class name, all boolean state flags |
+| `input` | EditText and SearchView fields only | Full (same as `interactive`). On Compose-based apps, use `interactive` instead — input fields may not be detected |
+| `all` | Every element in the UI hierarchy | Full |
+
+*Returns: `mode` (string), `total` (int), `elements` (list). In `tappable` mode, each element has `resource_id`, `text`, `content_desc`, `center_x`, `center_y`. In all other modes, each element additionally has `xpath`, `class_name`, `bounds` (4-tuple), `clickable`, `focusable`, `scrollable`, `long_clickable`, `checkable`, `checked`, `enabled`, `selected`.*
+
+*Example: "Find all tappable elements on the current screen."*
+
+## get_screen_text
+
+Returns all visible text on the current Android screen, sorted top-to-bottom. Use this when you need to read what is on screen. Does not include coordinates or element info — for tapping or interacting, use `get_screen_elements`.
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `device_serial` | string | No | auto-detect | Android device serial (pattern: `^[a-zA-Z0-9\-:.]+$`, max 64 chars) |
+
+*Returns: `plain` (string — all visible text, newline-separated, sorted top-to-bottom), `total` (int — number of text nodes).*
+
+*Example: "Read all visible text on the screen."*
