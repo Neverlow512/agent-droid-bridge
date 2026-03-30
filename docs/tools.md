@@ -1,6 +1,6 @@
 # Tools
 
-All tools accept an optional `device_serial` parameter. When omitted, the server auto-detects the connected device. When multiple devices are connected and no serial is provided, the tool returns a device list — present it to the user and wait for their choice before proceeding.
+All tools accept an optional `device_serial` parameter. When omitted, the server auto-detects the connected device. When multiple devices are connected and no serial is provided, the tool returns a device list — select the target serial and include it in subsequent calls.
 
 ## Choosing the right tool
 
@@ -119,13 +119,13 @@ Returns all Android devices currently visible to ADB.
 
 *Returns: a list of objects, each with `serial` (string), `state` (string), and `model` (string).*
 
-*Call this first when multiple devices may be connected to get the serials needed for other tools.*
+Useful when multiple devices are connected and you need to identify the target serial before calling other tools.
 
 *Example: "Which devices are connected right now?"*
 
 ## snapshot_ui
 
-Takes a lightweight snapshot of the current UI state and returns a short token. Use this before performing an action when you only need to confirm the screen changed afterward — not read its content. Pass the token to `detect_ui_change` as `baseline_token`. Do not use this when you need to read or interact with screen elements — use `get_screen_text` or `get_screen_elements` to read or interact with screen elements; use `get_ui_hierarchy` for the raw structure.
+Takes a lightweight snapshot of the current UI state and returns a short token. The token can be passed to `detect_ui_change` as `baseline_token` to detect changes relative to a known point — for example, immediately before triggering an action. This tool is intended for change detection only; it does not return screen content. To read or interact with screen elements, use `get_screen_text` or `get_screen_elements`. For the raw XML structure, use `get_ui_hierarchy`.
 
 | Parameter | Type | Required | Default | Description |
 |---|---|---|---|---|
@@ -154,7 +154,7 @@ Polls the UI hierarchy after an action and returns when the screen content chang
 
 ## get_screen_elements
 
-Returns a structured list of UI elements currently visible on the Android screen. Elements are filtered and shaped by the chosen mode. Prefer `tappable` for navigation; use `interactive` when you need XPath or bounds for precise ADB commands. Only use `all` when other modes miss what you need — it returns every node and can be large.
+Returns a structured list of UI elements currently visible on the Android screen. Elements are filtered and shaped by the chosen mode. `tappable` is the right choice for most navigation tasks. Use `interactive` when XPath or bounds are needed for precise ADB commands. `all` returns every node and can produce large responses — use it only when the other modes do not include the element you need.
 
 | Parameter | Type | Required | Default | Description |
 |---|---|---|---|---|
@@ -176,7 +176,7 @@ Returns a structured list of UI elements currently visible on the Android screen
 
 ## get_screen_text
 
-Returns all visible text on the current Android screen, sorted top-to-bottom. Use this when you need to read what is on screen. Does not include coordinates or element info — for tapping or interacting, use `get_screen_elements`.
+Returns all visible text on the current Android screen, sorted top-to-bottom. This tool is for reading screen content only — it does not include coordinates or element metadata. To interact with elements, use `get_screen_elements`.
 
 | Parameter | Type | Required | Default | Description |
 |---|---|---|---|---|
