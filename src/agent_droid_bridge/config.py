@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import os
 import re
+from importlib.resources import files as _resource_files
 from pathlib import Path
 
 import yaml
@@ -15,11 +16,13 @@ def _resolve_config_path() -> Path:
     env_path = os.environ.get("ADB_CONFIG_PATH")
     if env_path:
         return Path(env_path)
-    bundled = Path(__file__).parent / "configs" / "adb_config.yaml"
-    if bundled.exists():
-        return bundled
-    local = Path(__file__).parent.parent.parent / "configs" / "adb_config.yaml"
-    return local
+    # Priority: project root copy (dev/source installs) → bundled package copy (uvx/pip installs)
+    # This allows developers and source installers to edit configs/adb_config.yaml directly
+    # without needing ADB_CONFIG_PATH. Installed users get bundled defaults automatically.
+    root_copy = Path(__file__).parent.parent.parent / "configs" / "adb_config.yaml"
+    if root_copy.exists():
+        return root_copy
+    return Path(str(_resource_files("agent_droid_bridge") / "configs" / "adb_config.yaml"))
 
 
 CONFIG_PATH = _resolve_config_path()
@@ -31,7 +34,6 @@ class ADBConfig(BaseModel):
     path: str = "adb"
     command_timeout: int = 30
     screenshot_timeout: int = 60
-    allowed_shell_commands: list[str] = []
     ui_change_timeout: int = 10
     ui_change_poll_interval: float = 0.5
 
@@ -63,9 +65,26 @@ class ServerConfig(BaseModel):
         return upper
 
 
+class SecurityConfig(BaseModel):
+    shell_command_allowlist: list[str] = []
+    shell_command_denylist: list[str] = []
+
+
+class ToolsConfig(BaseModel):
+    denied: list[str] = []
+
+
+class ExtraToolPacksConfig(BaseModel):
+    enabled: bool = False
+    packs: list[str] = []
+
+
 class Settings(BaseModel):
     adb: ADBConfig = ADBConfig()
     server: ServerConfig = ServerConfig()
+    security: SecurityConfig = SecurityConfig()
+    tools: ToolsConfig = ToolsConfig()
+    extra_tool_packs: ExtraToolPacksConfig = ExtraToolPacksConfig()
     execution_mode: str = "unrestricted"
     allow_shell: bool = True
 

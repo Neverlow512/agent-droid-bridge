@@ -19,6 +19,7 @@ from .models import (
     ScreenTextResult,
     UIChangeResult,
 )
+from .startup import apply_tool_deny_list, load_extra_packs
 
 logger = logging.getLogger(__name__)
 
@@ -393,6 +394,9 @@ async def get_screen_text(
         )
 
 
+apply_tool_deny_list(mcp, settings)
+load_extra_packs(mcp, settings)
+
 _HELP = """\
 Agent Droid Bridge - MCP server for Android device control via ADB
 
@@ -407,6 +411,9 @@ Environment variables:
 
 Documentation:
   https://github.com/Neverlow512/agent-droid-bridge
+
+If this saves you time, a star on GitHub helps the project grow:
+https://github.com/Neverlow512/agent-droid-bridge
 """
 
 

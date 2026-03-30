@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from agent_droid_bridge.config import ADBConfig, ServerConfig, Settings
+from agent_droid_bridge.config import ADBConfig, SecurityConfig, ServerConfig, Settings
 
 
 class TestADBConfig:
@@ -97,13 +97,37 @@ class TestUIChangeConfig:
 
 
 class TestAllowedShellCommands:
-    def test_defaults_to_empty_list(self) -> None:
-        cfg = ADBConfig()
-        assert cfg.allowed_shell_commands == []
+    def test_allowlist_defaults_to_empty(self) -> None:
+        cfg = SecurityConfig()
+        assert cfg.shell_command_allowlist == []
 
-    def test_accepts_list_of_strings(self) -> None:
-        cfg = ADBConfig(allowed_shell_commands=["ls", "pm", "dumpsys"])
-        assert cfg.allowed_shell_commands == ["ls", "pm", "dumpsys"]
+    def test_denylist_defaults_to_empty(self) -> None:
+        cfg = SecurityConfig()
+        assert cfg.shell_command_denylist == []
+
+    def test_allowlist_accepts_list_of_strings(self) -> None:
+        cfg = SecurityConfig(shell_command_allowlist=["ls", "pm", "dumpsys"])
+        assert cfg.shell_command_allowlist == ["ls", "pm", "dumpsys"]
+
+    def test_denylist_accepts_list_of_strings(self) -> None:
+        cfg = SecurityConfig(shell_command_denylist=["rm", "reboot"])
+        assert cfg.shell_command_denylist == ["rm", "reboot"]
+
+
+class TestNewConfigFields:
+    def test_settings_has_security(self) -> None:
+        s = Settings()
+        assert s.security.shell_command_allowlist == []
+        assert s.security.shell_command_denylist == []
+
+    def test_settings_has_tools(self) -> None:
+        s = Settings()
+        assert s.tools.denied == []
+
+    def test_settings_has_extra_tool_packs(self) -> None:
+        s = Settings()
+        assert s.extra_tool_packs.enabled is False
+        assert s.extra_tool_packs.packs == []
 
 
 class TestSettingsLoadExecutionMode:
@@ -300,3 +324,47 @@ class TestADBAllowShellParsing:
 
         with pytest.raises(ValueError, match="ADB_ALLOW_SHELL must be"):
             Settings.load(path=tmp_path / "nonexistent.yaml")
+
+
+class TestSecurityConfigYAMLLoading:
+    def test_security_block_loads_allowlist_from_yaml(self, tmp_path, monkeypatch) -> None:
+        monkeypatch.delenv("ADB_EXECUTION_MODE", raising=False)
+        monkeypatch.delenv("ADB_ALLOW_SHELL", raising=False)
+        cfg_file = tmp_path / "config.yaml"
+        cfg_file.write_text("security:\n  shell_command_allowlist:\n    - dumpsys\n    - pm\n")
+        s = Settings.load(path=cfg_file)
+        assert s.security.shell_command_allowlist == ["dumpsys", "pm"]
+
+    def test_security_block_loads_denylist_from_yaml(self, tmp_path, monkeypatch) -> None:
+        monkeypatch.delenv("ADB_EXECUTION_MODE", raising=False)
+        monkeypatch.delenv("ADB_ALLOW_SHELL", raising=False)
+        cfg_file = tmp_path / "config.yaml"
+        cfg_file.write_text("security:\n  shell_command_denylist:\n    - rm\n    - reboot\n")
+        s = Settings.load(path=cfg_file)
+        assert s.security.shell_command_denylist == ["rm", "reboot"]
+
+    def test_tools_denied_loads_from_yaml(self, tmp_path, monkeypatch) -> None:
+        monkeypatch.delenv("ADB_EXECUTION_MODE", raising=False)
+        monkeypatch.delenv("ADB_ALLOW_SHELL", raising=False)
+        cfg_file = tmp_path / "config.yaml"
+        cfg_file.write_text("tools:\n  denied:\n    - execute_adb_command\n")
+        s = Settings.load(path=cfg_file)
+        assert s.tools.denied == ["execute_adb_command"]
+
+    def test_extra_tool_packs_loads_from_yaml(self, tmp_path, monkeypatch) -> None:
+        monkeypatch.delenv("ADB_EXECUTION_MODE", raising=False)
+        monkeypatch.delenv("ADB_ALLOW_SHELL", raising=False)
+        cfg_file = tmp_path / "config.yaml"
+        cfg_file.write_text("extra_tool_packs:\n  enabled: true\n  packs:\n    - debugging\n")
+        s = Settings.load(path=cfg_file)
+        assert s.extra_tool_packs.enabled is True
+        assert s.extra_tool_packs.packs == ["debugging"]
+
+    def test_missing_security_block_uses_defaults(self, tmp_path, monkeypatch) -> None:
+        monkeypatch.delenv("ADB_EXECUTION_MODE", raising=False)
+        monkeypatch.delenv("ADB_ALLOW_SHELL", raising=False)
+        cfg_file = tmp_path / "config.yaml"
+        cfg_file.write_text("adb:\n  path: adb\n")
+        s = Settings.load(path=cfg_file)
+        assert s.security.shell_command_allowlist == []
+        assert s.security.shell_command_denylist == []

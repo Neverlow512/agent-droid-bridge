@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import logging
+import os
 import re
 import shlex
 import time
@@ -84,11 +85,11 @@ class ADBService:
                         break
                 if shell_idx is not None and shell_idx + 1 < len(cmd):
                     target_cmd = cmd[shell_idx + 1]
-                    allowed = self._settings.adb.allowed_shell_commands
+                    allowed = self._settings.security.shell_command_allowlist
                     if not allowed:
                         raise ADBError(
                             "No commands are permitted in restricted mode"
-                            " — allowed_shell_commands is empty"
+                            " — shell_command_allowlist is empty"
                         )
                     if target_cmd not in allowed:
                         raise ADBError(
@@ -96,6 +97,19 @@ class ADBService:
                         )
                 elif shell_idx is None:
                     raise ADBError("Top-level ADB commands are not permitted in restricted mode")
+            elif self._settings.execution_mode == "unrestricted":
+                shell_idx = None
+                for i, token in enumerate(cmd):
+                    if token == "shell":
+                        shell_idx = i
+                        break
+                if shell_idx is not None and shell_idx + 1 < len(cmd):
+                    target_cmd = cmd[shell_idx + 1]
+                    denied = self._settings.security.shell_command_denylist
+                    if target_cmd in denied or os.path.basename(target_cmd) in denied:
+                        raise ADBError(
+                            f"Command '{target_cmd}' is blocked by shell_command_denylist"
+                        )
             if not self._settings.allow_shell:
                 for token in cmd:
                     if token == "shell":

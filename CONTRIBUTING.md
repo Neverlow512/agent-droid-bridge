@@ -33,7 +33,17 @@ Use the appropriate prefix: `feat/`, `fix/`, `chore/`, `docs/`.
 
 **Commits**
 
-Follow conventional commit prefixes: `feat:`, `fix:`, `chore:`, `docs:`.
+Follow conventional commit format: `type(scope): description`
+
+| Type | Purpose | Version Bump |
+|------|---------|--------------|
+| `feat` | New user-facing capability | MINOR (0.x.0) |
+| `fix` | Bug fix | PATCH (0.0.x) |
+| `chore` | Tooling, dependencies, config | No changelog entry |
+| `docs` | Documentation only | No changelog entry |
+| `feat!` or `BREAKING CHANGE:` | Breaking change | MAJOR (x.0.0) |
+
+A `feat!` or `BREAKING CHANGE:` footer triggers a MAJOR version bump. MAJOR means breaking change, not "big release".
 
 **Code standards**
 
@@ -47,10 +57,18 @@ Follow conventional commit prefixes: `feat:`, `fix:`, `chore:`, `docs:`.
 
 ## Submitting a PR
 
-- One change per PR.
+- Open a PR from your branch to `main`.
+- The maintainer will squash merge the PR.
+- The squash commit message is what appears in the changelog. Include a clear conventional commit message in your PR description as the suggested merge message.
+- One PR per feature or fix.
 - New functionality requires tests.
-- The PR description should cover what changed and why.
 - All existing tests must pass and `ruff` must report no errors.
+
+Install the pre-commit hook to validate commit messages:
+
+```bash
+pip install pre-commit && pre-commit install
+```
 
 ## Reporting bugs
 

@@ -4,6 +4,12 @@
 
 Agent Droid Bridge is an MCP server that connects AI agents to Android devices and emulators over ADB. It is built for mobile automation, app testing, dynamic analysis, and reverse engineering: exposing the full surface of ADB as structured tools that any MCP-compatible AI client can call directly. If ADB can do it, an agent can do it.
 
+---
+
+**⭐ Open source, solo-built. If it saves you time, a star helps others find it. ⭐**
+
+---
+
 > Note: Purpose-built tools return structured, minimal responses instead of raw XML dumps, keeping agent workflows fast and context consumption low, while keeping performance high.
 
 [![agent-droid-bridge MCP server](https://glama.ai/mcp/servers/Neverlow512/agent-droid-bridge/badges/card.svg)](https://glama.ai/mcp/servers/Neverlow512/agent-droid-bridge)
@@ -30,6 +36,9 @@ The demo above runs through a few straightforward tasks to show what a connected
 - All commands parsed via `shlex` — no shell injection possible
 - Runs over stdio, compatible with any MCP-capable AI client
 - Purpose-built screen reading and element extraction tools return structured, minimal responses — a fraction of the size of a raw XML hierarchy — keeping agent context lean across long automation runs
+- Two execution modes: `unrestricted` (default, with optional shell denylist) and `restricted` (allowlist-only — only explicitly permitted shell commands are allowed); set `ADB_EXECUTION_MODE=restricted` to enable
+- Set `ADB_ALLOW_SHELL=false` to block all `adb shell` commands entirely, regardless of mode
+- Add tool names to `tools.denied` in `adb_config.yaml` to hide specific MCP tools from the agent at server startup — all filtering enforced at the server level
 
 ## Install
 
@@ -91,6 +100,10 @@ Full setup guide: [docs/setup.md](docs/setup.md)
 
 
 Full parameter reference: [docs/tools.md](docs/tools.md)
+
+## Configuration
+
+The server is configurable via `adb_config.yaml` and environment variables. Tuneable parameters include the ADB binary path, command timeouts, log level, execution mode, shell filtering rules, and tool visibility. Full reference: [docs/configuration.md](docs/configuration.md).
 
 ## Documentation
 
