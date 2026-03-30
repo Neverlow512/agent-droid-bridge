@@ -6,7 +6,7 @@ Agent Droid Bridge is an MCP server that connects AI agents to Android devices a
 
 ---
 
-**⭐ Open source, solo-built. If it saves you time, a star helps others find it. ⭐**
+**⭐ If you like the project, a star helps others find it. ⭐**
 
 ---
 
