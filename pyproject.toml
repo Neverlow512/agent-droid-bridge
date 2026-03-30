@@ -56,9 +56,6 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src/agent_droid_bridge"]
 
-[tool.hatch.build.targets.wheel.force-include]
-"configs/adb_config.yaml" = "agent_droid_bridge/configs/adb_config.yaml"
-
 [tool.ruff]
 line-length = 100
 target-version = "py311"
@@ -83,3 +80,11 @@ version_files = [
 tag_format = "v$version"
 update_changelog_on_bump = true
 changelog_file = "CHANGELOG.md"
+changelog_incremental = true
+change_type_order = ["Features", "Bug Fixes", "Refactor", "Performance"]
+
+[tool.commitizen.change_type_map]
+feat = "Features"
+fix = "Bug Fixes"
+refactor = "Refactor"
+perf = "Performance"

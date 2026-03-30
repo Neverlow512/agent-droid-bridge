@@ -5,3 +5,4 @@ pytest-asyncio
 build
 twine
 commitizen
+pre-commit
