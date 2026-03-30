@@ -7,5 +7,14 @@ if [ "$BRANCH" != "main" ]; then
     exit 1
 fi
 
-cz bump "$@"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+CZ="${REPO_ROOT}/venv/bin/cz"
+
+if [ ! -f "$CZ" ]; then
+    echo "commitizen not found in venv — run: pip install -r requirements-dev.txt"
+    exit 1
+fi
+
+"$CZ" bump "$@"
 git push origin main --tags

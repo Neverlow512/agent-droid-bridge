@@ -1,3 +1,10 @@
+## v0.3.0 (2026-03-30)
+
+### Features
+
+- security hardening and modular tool packs for v0.3.0
+- add shell command filtering, tool deny list, and extra tool packs scaffold
+
 ## v0.2.0 (2026-03-29)
 
 ### Features
