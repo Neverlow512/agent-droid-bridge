@@ -2,8 +2,13 @@
 
 ### Features
 
-- security hardening and modular tool packs for v0.3.0
-- add shell command filtering, tool deny list, and extra tool packs scaffold
+- Added shell command filtering with two execution modes: `restricted` (allowlist-only) and `unrestricted` (denylist-based), configured via `ADB_EXECUTION_MODE`
+- Added `ADB_ALLOW_SHELL=false` support to disable all `adb shell` commands entirely
+- Added `tools.denied` config block to hide specific MCP tools from the agent at server startup, keeping context lean and preventing accidental misuse
+- Added extra tool packs scaffold — optional feature modules can now be loaded at startup via the `extra_tool_packs` config block, laying the groundwork for modular capability expansion
+- Shell denylist supports basename matching, so `/system/bin/rm` is caught by a simple `rm` entry
+- New `security`, `tools`, and `extra_tool_packs` blocks added to `adb_config.yaml` with inline examples
+- Comprehensive unit tests covering all filtering paths
 
 ## v0.2.0 (2026-03-29)
 
