@@ -43,10 +43,59 @@ jobs:
             echo "on_main=false" >> "$GITHUB_OUTPUT"
           fi
 
+  update-changelog:
+    name: Update CHANGELOG.md
+    runs-on: ubuntu-latest
+    needs: guard
+    if: needs.guard.outputs.on_main == 'true'
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Extract Commit Info and Update Changelog
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#v}"
+          DATE=$(date -u +%Y-%m-%d)
+          SUBJECT=$(git log -1 --format="%s" "${TAG}")
+          BODY=$(git log -1 --format="%b" "${TAG}")
+
+          CLEAN_SUBJECT=$(echo "$SUBJECT" | sed 's/^[a-z]*([^)]*): //' | sed 's/^[a-z]*: //')
+          TYPE=$(echo "$SUBJECT" | sed 's/\([a-z]*\).*/\1/')
+
+          case "$TYPE" in
+            feat) CHANGE_TYPE="### Features" ;;
+            fix) CHANGE_TYPE="### Bug Fixes" ;;
+            refactor) CHANGE_TYPE="### Refactor" ;;
+            perf) CHANGE_TYPE="### Performance" ;;
+            *) CHANGE_TYPE="### Changes" ;;
+          esac
+
+          NEW_ENTRY="## v${VERSION} (${DATE})\n\n${CHANGE_TYPE}\n\n- ${CLEAN_SUBJECT}\n${BODY}\n"
+          EXISTING=$(cat CHANGELOG.md)
+          printf "%b\n%s" "$NEW_ENTRY" "$EXISTING" > CHANGELOG.md
+
+      - name: Commit and Push Changelog
+        run: |
+          git add CHANGELOG.md
+          git diff --cached --quiet || git commit -m "docs: update CHANGELOG for v${VERSION}"
+          git push origin main
+
   build:
     name: Build Distribution Packages
     runs-on: ubuntu-latest
-    needs: guard
+    needs: [guard, update-changelog]
     if: needs.guard.outputs.on_main == 'true'
 
     steps:

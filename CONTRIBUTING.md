@@ -59,7 +59,7 @@ A `feat!` or `BREAKING CHANGE:` footer triggers a MAJOR version bump. MAJOR mean
 
 - Open a PR from your branch to `main`.
 - The maintainer will squash merge the PR.
-- The squash commit message is what appears in the changelog. Include a clear conventional commit message in your PR description as the suggested merge message.
+- The squash commit message is what appears in the changelog. Include a clear conventional commit message in your PR description as the suggested merge message — subject line as `type(scope): description`, and body bullet points as user-facing changelog entries. The body bullets are written verbatim into `CHANGELOG.md` by CI.
 - One PR per feature or fix.
 - New functionality requires tests.
 - All existing tests must pass and `ruff` must report no errors.

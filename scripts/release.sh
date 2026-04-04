@@ -16,5 +16,5 @@ if [ ! -f "$CZ" ]; then
     exit 1
 fi
 
-"$CZ" bump "$@"
+"$CZ" bump --no-changelog "$@"
 git push origin main --tags
