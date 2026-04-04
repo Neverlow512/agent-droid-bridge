@@ -9,6 +9,8 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel, field_validator
 
+from .recorder.config import LoggingConfig
+
 DEVICE_SERIAL_PATTERN = re.compile(r"^[a-zA-Z0-9\-:.]+$")
 
 
@@ -120,3 +122,13 @@ def get_settings() -> Settings:
     if _settings is None:
         _settings = Settings.load()
     return _settings
+
+
+_logging_config: LoggingConfig | None = None
+
+
+def get_logging_config() -> LoggingConfig:
+    global _logging_config
+    if _logging_config is None:
+        _logging_config = LoggingConfig.load()
+    return _logging_config

@@ -44,6 +44,20 @@ Optional feature modules that register additional tool groups at startup.
 | `extra_tool_packs.enabled` | `false` | boolean | When `false`, no extra packs are loaded regardless of the `packs` list. |
 | `extra_tool_packs.packs` | `[]` | list of strings | Names of packs to load when `enabled` is `true`. Example: `["debugging"]`. |
 
+### `logging`
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `logging.enabled` | `false` | boolean | Master switch for the recorder. Set via `MCP_LOG_ENABLED` environment variable or this key. |
+| `logging.tool_log_level` | `INFO` | string | Accepted: `INFO`, `DEBUG`. At DEBUG, tool responses are included in `tool.log`. |
+| `logging.adb_log_level` | `INFO` | string | Accepted: `INFO`, `DEBUG`. At DEBUG, stdout and stderr are included in `adb.log`. |
+| `logging.max_session_age_days` | `7` | integer | Sessions older than this are deleted on server startup. Must be > 0. |
+| `logging.max_sessions_to_keep` | `20` | integer | Max session directories to retain. Oldest removed first. Must be > 0. |
+| `logging.server_log_backup_count` | `7` | integer | Number of daily `server.log` backups to keep. |
+| `logging.max_file_size_mb` | `50` | integer | Per-file size cap in megabytes. Writes stop when the limit is reached. |
+
+See [logging.md](logging.md) for a full explanation of session structure, log levels, and retention behaviour.
+
 ## Environment variables
 
 These are set in your MCP client's `env` block (not in `adb_config.yaml`) and control the security behavior of `execute_adb_command`.
@@ -53,6 +67,8 @@ These are set in your MCP client's `env` block (not in `adb_config.yaml`) and co
 | `ADB_EXECUTION_MODE` | `unrestricted` / `restricted` | `unrestricted` | In `restricted` mode, shell commands must match `security.shell_command_allowlist` and top-level ADB commands (`use_shell: false`) are blocked entirely. |
 | `ADB_ALLOW_SHELL` | `true` / `false` | `true` | When `false`, `execute_adb_command` with `use_shell: true` is blocked entirely, regardless of execution mode. |
 | `ADB_CONFIG_PATH` | absolute path | — | Path to a custom config file. Overrides both the project root copy and the bundled default. |
+| `MCP_LOG_ENABLED` | `true` / `false` | `false` | Enables the session recorder. Requires `MCP_LOG_DIR` to be set. |
+| `MCP_LOG_DIR` | absolute path | — | Directory where logs are written. Required when `MCP_LOG_ENABLED` is `true`. |
 
 Internal tools (`get_ui_hierarchy`, `take_screenshot`, `tap_screen`, etc.) are not affected by `ADB_EXECUTION_MODE` or `ADB_ALLOW_SHELL`.
 

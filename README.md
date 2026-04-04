@@ -105,6 +105,8 @@ Full parameter reference: [docs/tools.md](docs/tools.md)
 
 The server is configurable via `adb_config.yaml` and environment variables. Tuneable parameters include the ADB binary path, command timeouts, log level, execution mode, shell filtering rules, and tool visibility. Full reference: [docs/configuration.md](docs/configuration.md).
 
+Session recording is configured separately via `logging_config.yaml`. Enable it by setting `MCP_LOG_ENABLED=true` and `MCP_LOG_DIR` in your MCP client config. Full reference: [docs/logging.md](docs/logging.md).
+
 ## Documentation
 
 
@@ -113,6 +115,7 @@ The server is configurable via `adb_config.yaml` and environment variables. Tune
 | [docs/setup.md](docs/setup.md)                 | Prerequisites, installation, and MCP client configuration |
 | [docs/tools.md](docs/tools.md)                 | Full parameter reference for all 13 tools                 |
 | [docs/configuration.md](docs/configuration.md) | Reference for `adb_config.yaml` and environment variables |
+| [docs/logging.md](docs/logging.md)             | Session recorder — log files, levels, retention, and activation |
 
 
 ## Contributing

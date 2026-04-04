@@ -11,6 +11,7 @@ import xml.etree.ElementTree as ET
 
 from .config import DEVICE_SERIAL_PATTERN, Settings
 from .models import ScreenElementsResult, ScreenTextResult
+from .recorder import get_session_logger
 from .ui_parser import parse_elements, parse_screen_text
 
 logger = logging.getLogger(__name__)
@@ -68,6 +69,82 @@ class ADBService:
             f"Do not retry with a guessed serial."
         )
 
+    def _check_security(self, cmd: list[str]) -> None:
+        if self._settings.execution_mode == "restricted":
+            shell_idx = None
+            for i, token in enumerate(cmd):
+                if token == "shell":
+                    shell_idx = i
+                    break
+            if shell_idx is not None and shell_idx + 1 < len(cmd):
+                target_cmd = cmd[shell_idx + 1]
+                allowed = self._settings.security.shell_command_allowlist
+                if not allowed:
+                    _session_logger = get_session_logger()
+                    if _session_logger:
+                        _session_logger.security_event(
+                            event_type="restricted_mode_block",
+                            detail="shell_command_allowlist is empty",
+                            command=cmd,
+                        )
+                    raise ADBError(
+                        "No commands are permitted in restricted mode"
+                        " — shell_command_allowlist is empty"
+                    )
+                if target_cmd not in allowed:
+                    _session_logger = get_session_logger()
+                    if _session_logger:
+                        _session_logger.security_event(
+                            event_type="allowlist_rejection",
+                            detail=f"Command '{target_cmd}' not in allowlist",
+                            command=cmd,
+                        )
+                    raise ADBError(
+                        f"Command '{target_cmd}' is not permitted in restricted mode"
+                    )
+            elif shell_idx is None:
+                _session_logger = get_session_logger()
+                if _session_logger:
+                    _session_logger.security_event(
+                        event_type="restricted_toplevel_block",
+                        detail="Top-level ADB commands not permitted in restricted mode",
+                        command=cmd,
+                    )
+                raise ADBError("Top-level ADB commands are not permitted in restricted mode")
+        elif self._settings.execution_mode == "unrestricted":
+            shell_idx = None
+            for i, token in enumerate(cmd):
+                if token == "shell":
+                    shell_idx = i
+                    break
+            if shell_idx is not None and shell_idx + 1 < len(cmd):
+                target_cmd = cmd[shell_idx + 1]
+                denied = self._settings.security.shell_command_denylist
+                if target_cmd in denied or os.path.basename(target_cmd) in denied:
+                    _session_logger = get_session_logger()
+                    if _session_logger:
+                        _session_logger.security_event(
+                            event_type="denylist_hit",
+                            detail=f"Command '{target_cmd}' blocked by denylist",
+                            command=cmd,
+                        )
+                    raise ADBError(
+                        f"Command '{target_cmd}' is blocked by shell_command_denylist"
+                    )
+        if not self._settings.allow_shell:
+            for token in cmd:
+                if token == "shell":
+                    _session_logger = get_session_logger()
+                    if _session_logger:
+                        _session_logger.security_event(
+                            event_type="shell_disabled",
+                            detail="ADB_ALLOW_SHELL is false",
+                            command=cmd,
+                        )
+                    raise ADBError(
+                        "Shell commands are disabled — ADB_ALLOW_SHELL is set to false"
+                    )
+
     async def _run(
         self,
         cmd: list[str],
@@ -77,45 +154,8 @@ class ADBService:
     ) -> tuple[bytes, bytes]:
         effective_timeout = timeout or self._settings.adb.command_timeout
         if not trusted:
-            if self._settings.execution_mode == "restricted":
-                shell_idx = None
-                for i, token in enumerate(cmd):
-                    if token == "shell":
-                        shell_idx = i
-                        break
-                if shell_idx is not None and shell_idx + 1 < len(cmd):
-                    target_cmd = cmd[shell_idx + 1]
-                    allowed = self._settings.security.shell_command_allowlist
-                    if not allowed:
-                        raise ADBError(
-                            "No commands are permitted in restricted mode"
-                            " — shell_command_allowlist is empty"
-                        )
-                    if target_cmd not in allowed:
-                        raise ADBError(
-                            f"Command '{target_cmd}' is not permitted in restricted mode"
-                        )
-                elif shell_idx is None:
-                    raise ADBError("Top-level ADB commands are not permitted in restricted mode")
-            elif self._settings.execution_mode == "unrestricted":
-                shell_idx = None
-                for i, token in enumerate(cmd):
-                    if token == "shell":
-                        shell_idx = i
-                        break
-                if shell_idx is not None and shell_idx + 1 < len(cmd):
-                    target_cmd = cmd[shell_idx + 1]
-                    denied = self._settings.security.shell_command_denylist
-                    if target_cmd in denied or os.path.basename(target_cmd) in denied:
-                        raise ADBError(
-                            f"Command '{target_cmd}' is blocked by shell_command_denylist"
-                        )
-            if not self._settings.allow_shell:
-                for token in cmd:
-                    if token == "shell":
-                        raise ADBError(
-                            "Shell commands are disabled — ADB_ALLOW_SHELL is set to false"
-                        )
+            self._check_security(cmd)
+        _run_start = time.monotonic()
         proc = await asyncio.create_subprocess_exec(
             *cmd,
             stdout=asyncio.subprocess.PIPE,
@@ -127,6 +167,16 @@ class ADBService:
         except TimeoutError:
             proc.kill()
             await proc.wait()
+            try:
+                _session_logger = get_session_logger()
+                if _session_logger:
+                    _session_logger.adb_command(
+                        command=cmd,
+                        exit_code=-1,
+                        duration_ms=(time.monotonic() - _run_start) * 1000,
+                    )
+            except Exception:
+                pass
             raise ADBError(f"ADB command timed out after {effective_timeout}s")
 
         if proc.returncode != 0:
@@ -135,9 +185,33 @@ class ADBService:
                 cmd,
                 stderr.decode(errors="replace"),
             )
+            try:
+                _session_logger = get_session_logger()
+                if _session_logger:
+                    _session_logger.adb_command(
+                        command=cmd,
+                        exit_code=proc.returncode,
+                        duration_ms=(time.monotonic() - _run_start) * 1000,
+                        stdout=stdout.decode(errors="replace") if stdout else None,
+                        stderr=stderr.decode(errors="replace") if stderr else None,
+                    )
+            except Exception:
+                pass
             stderr_snippet = stderr.decode(errors="replace").strip()[:300]
             raise ADBError(f"ADB command failed: {stderr_snippet}")
 
+        try:
+            _session_logger = get_session_logger()
+            if _session_logger:
+                _session_logger.adb_command(
+                    command=cmd,
+                    exit_code=proc.returncode,
+                    duration_ms=(time.monotonic() - _run_start) * 1000,
+                    stdout=stdout.decode(errors="replace") if stdout else None,
+                    stderr=stderr.decode(errors="replace") if stderr else None,
+                )
+        except Exception:
+            pass
         return stdout, stderr
 
     async def list_devices(self) -> list[dict]:
@@ -277,10 +351,11 @@ class ADBService:
             raise ADBError("Invalid command syntax: unable to parse") from e
         if not parts:
             raise ADBError("Empty command")
+        self._check_security(["shell"] + parts if use_shell else parts)
         serial = await self._resolve_serial(device_serial)
         base = self._build_base_cmd(serial)
         cmd = base + (["shell"] + parts if use_shell else parts)
-        stdout, _ = await self._run(cmd)
+        stdout, _ = await self._run(cmd, trusted=True)
         return stdout.decode("utf-8", errors="replace")
 
     async def get_screen_elements(

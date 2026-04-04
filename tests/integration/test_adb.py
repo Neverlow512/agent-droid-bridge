@@ -153,46 +153,46 @@ class TestDetectUIChange:
 class TestAllowlistEnforcement:
     async def test_restricted_blocks_unlisted_command(self, settings: Settings) -> None:
         settings.execution_mode = "restricted"
-        settings.adb.allowed_shell_commands = ["ls"]
+        settings.security.shell_command_allowlist = ["ls"]
         try:
             svc = ADBService(settings)
             with pytest.raises(ADBError, match="not permitted"):
                 await svc.execute_adb_command("pm list packages")
         finally:
             settings.execution_mode = "unrestricted"
-            settings.adb.allowed_shell_commands = []
+            settings.security.shell_command_allowlist = []
 
     async def test_restricted_permits_listed_command(self, settings: Settings) -> None:
         settings.execution_mode = "restricted"
-        settings.adb.allowed_shell_commands = ["ls"]
+        settings.security.shell_command_allowlist = ["ls"]
         try:
             svc = ADBService(settings)
             result = await svc.execute_adb_command("ls /sdcard")
             assert isinstance(result, str)
         finally:
             settings.execution_mode = "unrestricted"
-            settings.adb.allowed_shell_commands = []
+            settings.security.shell_command_allowlist = []
 
     async def test_restricted_empty_list_blocks_all(self, settings: Settings) -> None:
         settings.execution_mode = "restricted"
-        settings.adb.allowed_shell_commands = []
+        settings.security.shell_command_allowlist = []
         try:
             svc = ADBService(settings)
-            with pytest.raises(ADBError, match="allowed_shell_commands is empty"):
+            with pytest.raises(ADBError, match="shell_command_allowlist is empty"):
                 await svc.execute_adb_command("ls /sdcard")
         finally:
             settings.execution_mode = "unrestricted"
 
     async def test_restricted_blocks_toplevel_commands(self, settings: Settings) -> None:
         settings.execution_mode = "restricted"
-        settings.adb.allowed_shell_commands = ["ls"]
+        settings.security.shell_command_allowlist = ["ls"]
         try:
             svc = ADBService(settings)
             with pytest.raises(ADBError, match="Top-level ADB commands are not permitted"):
                 await svc.execute_adb_command("devices", use_shell=False)
         finally:
             settings.execution_mode = "unrestricted"
-            settings.adb.allowed_shell_commands = []
+            settings.security.shell_command_allowlist = []
 
     async def test_allow_shell_false_blocks_shell_commands(self, settings: Settings) -> None:
         settings.allow_shell = False
@@ -211,7 +211,7 @@ class TestAllowlistEnforcement:
 
     async def test_unrestricted_ignores_allowlist(self, settings: Settings) -> None:
         settings.execution_mode = "unrestricted"
-        settings.adb.allowed_shell_commands = []
+        settings.security.shell_command_allowlist = []
         svc = ADBService(settings)
         result = await svc.execute_adb_command("ls /sdcard")
         assert isinstance(result, str)

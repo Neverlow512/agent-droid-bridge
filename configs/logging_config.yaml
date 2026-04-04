@@ -1,0 +1,8 @@
+logging:
+  enabled: false
+  tool_log_level: INFO
+  adb_log_level: INFO
+  max_session_age_days: 7
+  max_sessions_to_keep: 20
+  server_log_backup_count: 7
+  max_file_size_mb: 50

@@ -11,7 +11,7 @@ from fastmcp.exceptions import ToolError
 from pydantic import Field
 
 from .adb import ADBError, ADBService
-from .config import get_settings
+from .config import get_logging_config, get_settings
 from .models import (
     DeviceInfo,
     ScreenElementsResult,
@@ -19,6 +19,8 @@ from .models import (
     ScreenTextResult,
     UIChangeResult,
 )
+from .recorder import setup_logging
+from .recorder.middleware import ToolRecorderMiddleware
 from .startup import apply_tool_deny_list, load_extra_packs
 
 logger = logging.getLogger(__name__)
@@ -28,6 +30,10 @@ logging.basicConfig(level=settings.server.log_level)
 
 adb = ADBService(settings)
 mcp = FastMCP("Agent Droid Bridge")
+
+_logging_config = get_logging_config()
+setup_logging(_logging_config)
+mcp.add_middleware(ToolRecorderMiddleware())
 
 DeviceSerial = Annotated[
     str | None,

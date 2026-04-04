@@ -57,6 +57,8 @@ For the MCP client config when running from source, see the "From source" config
 
 ### Cursor
 
+To enable session logging, set `MCP_LOG_ENABLED` to `"true"` and update `MCP_LOG_DIR` to a writable path on your machine.
+
 Add to `~/.cursor/mcp.json` under the `mcpServers` key:
 
 ```json
@@ -67,7 +69,9 @@ Add to `~/.cursor/mcp.json` under the `mcpServers` key:
       "args": ["agent-droid-bridge"],
       "env": {
         "ADB_EXECUTION_MODE": "unrestricted",
-        "ADB_ALLOW_SHELL": "true"
+        "ADB_ALLOW_SHELL": "true",
+        "MCP_LOG_ENABLED": "false",
+        "MCP_LOG_DIR": "/home/youruser/logs/agent-droid-bridge"
       }
     }
   }
@@ -86,7 +90,9 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
       "args": ["agent-droid-bridge"],
       "env": {
         "ADB_EXECUTION_MODE": "unrestricted",
-        "ADB_ALLOW_SHELL": "true"
+        "ADB_ALLOW_SHELL": "true",
+        "MCP_LOG_ENABLED": "false",
+        "MCP_LOG_DIR": "/home/youruser/logs/agent-droid-bridge"
       }
     }
   }
@@ -107,7 +113,9 @@ Add to your workspace or user `settings.json` under the `mcp.servers` key:
         "args": ["agent-droid-bridge"],
         "env": {
           "ADB_EXECUTION_MODE": "unrestricted",
-          "ADB_ALLOW_SHELL": "true"
+          "ADB_ALLOW_SHELL": "true",
+          "MCP_LOG_ENABLED": "false",
+          "MCP_LOG_DIR": "/home/youruser/logs/agent-droid-bridge"
         }
       }
     }
@@ -125,7 +133,9 @@ If running from a local clone instead of `uvx`, replace `command` and `args` wit
 "env": {
   "PYTHONPATH": "/absolute/path/to/agent-droid-bridge/src",
   "ADB_EXECUTION_MODE": "unrestricted",
-  "ADB_ALLOW_SHELL": "true"
+  "ADB_ALLOW_SHELL": "true",
+  "MCP_LOG_ENABLED": "false",
+  "MCP_LOG_DIR": "/home/youruser/logs/agent-droid-bridge"
 }
 ```
 
@@ -136,6 +146,8 @@ If running from a local clone instead of `uvx`, replace `command` and `args` wit
 | `ADB_EXECUTION_MODE` | `unrestricted`, `restricted` | `unrestricted` | In `restricted` mode only commands in the allowlist are permitted |
 | `ADB_ALLOW_SHELL` | `true`, `false` | `true` | Set to `false` to block all `adb shell` commands |
 | `ADB_CONFIG_PATH` | Absolute path | bundled default | Path to a custom `adb_config.yaml` |
+| `MCP_LOG_ENABLED` | `true`, `false` | `false` | Enables session logging. Requires `MCP_LOG_DIR`. |
+| `MCP_LOG_DIR` | Absolute path | — | Directory where session logs are written. |
 
 See [configuration.md](configuration.md) for the full YAML reference.
 
