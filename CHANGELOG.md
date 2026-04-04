@@ -1,5 +1,12 @@
 ## v0.4.0 (2026-04-04)
 
+### Changes
+
+- version 0.3.0 → 0.4.0
+
+
+## v0.4.0 (2026-04-04)
+
 ### Features
 
 - **logging**: add session recorder with tool, ADB, and security event capture
