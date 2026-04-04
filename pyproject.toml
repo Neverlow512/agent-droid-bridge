@@ -78,7 +78,7 @@ version_files = [
     "src/agent_droid_bridge/__init__.py:__version__ = \""
 ]
 tag_format = "v$version"
-update_changelog_on_bump = true
+update_changelog_on_bump = false
 changelog_file = "CHANGELOG.md"
 changelog_incremental = true
 change_type_order = ["Features", "Bug Fixes", "Refactor", "Performance"]

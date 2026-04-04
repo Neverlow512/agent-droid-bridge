@@ -68,8 +68,9 @@ jobs:
           TAG="${GITHUB_REF_NAME}"
           VERSION="${TAG#v}"
           DATE=$(date -u +%Y-%m-%d)
-          SUBJECT=$(git log -1 --format="%s" "${TAG}")
-          BODY=$(git log -1 --format="%b" "${TAG}")
+          # Read from the commit before the bump commit — that's the squash merge commit
+          SUBJECT=$(git log -1 --format="%s" "${TAG}~1")
+          BODY=$(git log -1 --format="%b" "${TAG}~1")
 
           CLEAN_SUBJECT=$(echo "$SUBJECT" | sed 's/^[a-z]*([^)]*): //' | sed 's/^[a-z]*: //')
           TYPE=$(echo "$SUBJECT" | sed 's/\([a-z]*\).*/\1/')
@@ -85,6 +86,8 @@ jobs:
           NEW_ENTRY="## v${VERSION} (${DATE})\n\n${CHANGE_TYPE}\n\n- ${CLEAN_SUBJECT}\n${BODY}\n"
           EXISTING=$(cat CHANGELOG.md)
           printf "%b\n%s" "$NEW_ENTRY" "$EXISTING" > CHANGELOG.md
+
+          echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
 
       - name: Commit and Push Changelog
         run: |

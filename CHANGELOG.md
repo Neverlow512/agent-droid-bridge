@@ -1,15 +1,15 @@
 ## v0.4.0 (2026-04-04)
 
-### Changes
-
-- version 0.3.0 → 0.4.0
-
-
-## v0.4.0 (2026-04-04)
-
 ### Features
 
-- **logging**: add session recorder with tool, ADB, and security event capture
+- Session recorder with tool, ADB, and security event capture
+- Session-isolated directories per server start with tool.log, adb.log, security.log, general.log
+- Persistent server.log at log root with daily rotation
+- INFO/DEBUG level control per log type; params always logged, responses at DEBUG only
+- Startup retention cleanup by session age and count
+- FastMCP middleware-based interception, zero changes to individual tool functions
+- Security event capture on all allowlist/denylist/shell block paths
+- Configurable via logging_config.yaml and MCP_LOG_ENABLED / MCP_LOG_DIR env vars
 
 ## v0.3.0 (2026-03-30)
 
