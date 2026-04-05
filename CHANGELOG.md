@@ -1,3 +1,15 @@
+## v0.4.1 (2026-04-05)
+
+### Bug Fixes
+
+- fix debug levels, config path, and add check_device_capabilities
+- Add check_device_capabilities tool for structured device introspection with identity, security, and hardware modes
+- Fix ADB session logger not passing stdout and stderr in debug mode
+- Fix logging config path resolution landing in src/ instead of project root
+- Bundle logging_config.yaml inside the package for pip/uvx installs with safe defaults
+- Add yaml files to wheel build includes in pyproject.toml
+- Update docs to reflect new tool and corrected logging config path behaviour
+
 ## v0.4.0 (2026-04-04)
 
 ### Features
