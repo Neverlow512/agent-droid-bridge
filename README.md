@@ -2,6 +2,8 @@
 
 # Agent Droid Bridge
 
+[![SafeSkill 91/100](https://img.shields.io/badge/SafeSkill-91%2F100_Verified%20Safe-brightgreen)](https://safeskill.dev/scan/neverlow512-agent-droid-bridge)
+
 Agent Droid Bridge is an MCP server that connects AI agents to Android devices and emulators over ADB. It is built for mobile automation, app testing, dynamic analysis, and reverse engineering: exposing the full surface of ADB as structured tools that any MCP-compatible AI client can call directly. If ADB can do it, an agent can do it.
 
 ---
