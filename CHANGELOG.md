@@ -1,3 +1,15 @@
+## v0.4.2 (2026-04-05)
+
+### Bug Fixes
+
+- expose dynamic tool catalog via server instructions at startup
+- Server generates instructions at startup via FastMCP lifespan hook, reflecting the active tool set after deny-list filtering
+- Tools are grouped by section (Core vs extra packs) with concise first-sentence descriptions extracted from each tool's docstring
+- Core tools expose a module-level description; extra packs can provide a PACK_META dict to contribute a section description
+- _pack_meta module-level dict collects descriptions from loaded packs at startup for use in instruction generation
+- Unit tests added for build_server_instructions, pack metadata collection via load_extra_packs, and lifespan wiring
+- README and docs updated to document the feature, PACK_META convention for pack authors, and logging env vars in quick start config blocks
+
 ## v0.4.1 (2026-04-05)
 
 ### Bug Fixes
