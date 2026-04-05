@@ -53,6 +53,12 @@ Documentation = "https://github.com/Neverlow512/agent-droid-bridge/blob/main/doc
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.build]
+include = [
+  "src/agent_droid_bridge/**/*.py",
+  "src/agent_droid_bridge/**/*.yaml",
+]
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/agent_droid_bridge"]
 

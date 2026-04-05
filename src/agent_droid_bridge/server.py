@@ -4,7 +4,7 @@ import base64
 import logging
 import struct
 import sys
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastmcp import FastMCP
 from fastmcp.exceptions import ToolError
@@ -12,7 +12,9 @@ from pydantic import Field
 
 from .adb import ADBError, ADBService
 from .config import get_logging_config, get_settings
+from .device_info import DeviceInfoService
 from .models import (
+    DeviceCapabilities,
     DeviceInfo,
     ScreenElementsResult,
     ScreenshotResult,
@@ -29,6 +31,7 @@ settings = get_settings()
 logging.basicConfig(level=settings.server.log_level)
 
 adb = ADBService(settings)
+device_info_service = DeviceInfoService(adb)
 mcp = FastMCP("Agent Droid Bridge")
 
 _logging_config = get_logging_config()
@@ -398,6 +401,41 @@ async def get_screen_text(
             "Failed to extract screen text"
             " — ensure a device is connected and the screen is unlocked"
         )
+
+
+@mcp.tool()
+async def check_device_capabilities(
+    mode: Annotated[
+        Literal["identity", "security", "hardware", "all"],
+        Field(
+            description=(
+                "'identity': manufacturer, model, Android version, API level, device type, "
+                "emulator status, CPU ABI, hardware identifiers, build fingerprint, build tags, "
+                "kernel version, and SELinux status. "
+                "'security': ADB root status, su availability, debuggable and secure flags, "
+                "verified boot state, USB config, dm-verity, encryption state, and SELinux status. "
+                "'hardware': CPU ABI, CPU ABI2, screen resolution, screen density, total RAM, "
+                "CPU cores, total storage, GPU, hardware board, and supported ABIs. "
+                "'all': all fields from all modes in a single call."
+            ),
+        ),
+    ],
+    device_serial: DeviceSerial = None,
+) -> DeviceCapabilities:
+    """Device capabilities and hardware profile for the connected Android device.
+
+    Use 'identity' to establish what device you are working with before starting a session.
+    Use 'security' when a task requires root permissions or you need to confirm privilege level.
+    Use 'hardware' when you need screen dimensions or memory constraints for layout decisions.
+    Use 'all' only when you need a complete profile and latency is not a concern.
+    """
+    try:
+        return await device_info_service.check_device_capabilities(mode, device_serial)
+    except ADBError as e:
+        raise ToolError(str(e)) from e
+    except Exception:
+        logger.exception("check_device_capabilities failed")
+        raise ToolError("Failed to retrieve device capabilities")
 
 
 apply_tool_deny_list(mcp, settings)

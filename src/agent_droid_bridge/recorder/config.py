@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from importlib.resources import files as _resource_files
 from pathlib import Path
 
 import yaml
@@ -74,18 +75,7 @@ def _resolve_config_path() -> Path | None:
     env_path = os.environ.get("MCP_LOG_CONFIG_PATH")
     if env_path:
         return Path(env_path)
-
-    project_path = Path(__file__).parent.parent.parent / "configs" / "logging_config.yaml"
-    if project_path.exists():
-        return project_path
-
-    try:
-        from importlib.resources import files as _resource_files
-        ref = _resource_files("agent_droid_bridge.recorder").joinpath("logging_config.yaml")
-        candidate = Path(str(ref))
-        if candidate.exists():
-            return candidate
-    except (ModuleNotFoundError, TypeError, FileNotFoundError):
-        pass
-
-    return None
+    root_copy = Path(__file__).parent.parent.parent.parent / "configs" / "logging_config.yaml"
+    if root_copy.exists():
+        return root_copy
+    return Path(str(_resource_files("agent_droid_bridge") / "configs" / "logging_config.yaml"))

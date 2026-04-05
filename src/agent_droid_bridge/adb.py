@@ -174,6 +174,8 @@ class ADBService:
                         command=cmd,
                         exit_code=-1,
                         duration_ms=(time.monotonic() - _run_start) * 1000,
+                        stdout=None,
+                        stderr=None,
                     )
             except Exception:
                 pass

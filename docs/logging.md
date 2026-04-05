@@ -74,7 +74,7 @@ Example `env` block (Cursor):
 
 ## Configuration reference
 
-All keys live in `configs/logging_config.yaml` (source installs) or the bundled default (uvx installs). Set `ADB_CONFIG_PATH` to override for `adb_config.yaml`; `logging_config.yaml` is always read from the project root for source installs.
+All keys live in `configs/logging_config.yaml` (source installs) or the bundled default (uvx installs). Set `ADB_CONFIG_PATH` to override for `adb_config.yaml`; for source installs, `logging_config.yaml` is read from the project root. For `uvx` and `pip` installs, the bundled default copy inside the package is used. Set `MCP_LOG_CONFIG_PATH` to an absolute path to override both.
 
 | Key | Default | Type | Description |
 |---|---|---|---|

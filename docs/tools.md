@@ -185,3 +185,23 @@ Returns all visible text on the current Android screen, sorted top-to-bottom. Th
 *Returns: `plain` (string — all visible text, newline-separated, sorted top-to-bottom), `total` (int — number of text nodes).*
 
 *Example: "Read all visible text on the screen."*
+
+## check_device_capabilities
+
+Returns structured information about the connected Android device in a single call. The `mode` parameter controls which fields are populated — use a specific mode to keep the response minimal, or `all` to get everything at once.
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `mode` | string | No | `all` | Controls which fields are returned. Options: `identity`, `security`, `hardware`, `all` (see below) |
+| `device_serial` | string | No | auto-detect | Android device serial (pattern: `^[a-zA-Z0-9\-:.]+$`, max 64 chars) |
+
+**Mode options:**
+
+| Mode | Fields returned |
+|---|---|
+| `identity` | manufacturer, model, codename, device_type, android_version, api_level, is_emulator, build_type, cpu_abi, cpu_abi2, hardware, board, build_fingerprint, build_tags, android_version_codename, kernel_version, selinux_status |
+| `security` | root_available, adb_is_root, selinux_status, ro_debuggable, ro_secure, verified_boot_state, usb_config, dm_verity, encryption_state |
+| `hardware` | total_ram_mb, screen_resolution, screen_density, supported_abis, cpu_cores, storage_total_gb, gpu |
+| `all` | All fields from all three modes combined |
+
+*Example: "What device is connected and is it rooted?"*
