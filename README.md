@@ -6,11 +6,9 @@ Agent Droid Bridge is an MCP server that connects AI agents to Android devices a
 
 ---
 
-**⭐ If you like the project, a star helps others find it. ⭐**
+> Note: Purpose-built tools return structured, minimal responses instead of raw XML dumps, keeping agent workflows fast and context consumption low, while keeping performance high.
 
 ---
-
-> Note: Purpose-built tools return structured, minimal responses instead of raw XML dumps, keeping agent workflows fast and context consumption low, while keeping performance high.
 
 [![agent-droid-bridge MCP server](https://glama.ai/mcp/servers/Neverlow512/agent-droid-bridge/badges/card.svg)](https://glama.ai/mcp/servers/Neverlow512/agent-droid-bridge)
 
@@ -39,6 +37,7 @@ The demo above runs through a few straightforward tasks to show what a connected
 - Two execution modes: `unrestricted` (default, with optional shell denylist) and `restricted` (allowlist-only — only explicitly permitted shell commands are allowed); set `ADB_EXECUTION_MODE=restricted` to enable
 - Set `ADB_ALLOW_SHELL=false` to block all `adb shell` commands entirely, regardless of mode
 - Add tool names to `tools.denied` in `adb_config.yaml` to hide specific MCP tools from the agent at server startup — all filtering enforced at the server level
+- Server instructions are automatically generated at startup and reflect the active tool set — agents receive a structured tool catalog at connect time, including any loaded extra tool packs
 
 ## Install
 
@@ -68,12 +67,16 @@ To verify the install: `uvx agent-droid-bridge --help`
       "args": ["agent-droid-bridge"],
       "env": {
         "ADB_EXECUTION_MODE": "unrestricted",
-        "ADB_ALLOW_SHELL": "true"
+        "ADB_ALLOW_SHELL": "true",
+        "MCP_LOG_ENABLED": "false",
+        "MCP_LOG_DIR": "~/logs/agent-droid-bridge"
       }
     }
   }
 }
 ```
+
+To enable session logging, set `MCP_LOG_ENABLED` to `"true"` and update `MCP_LOG_DIR` to a writable path on your machine.
 
 1. Prompt your agent to use the `agent-droid-bridge` MCP tools
 

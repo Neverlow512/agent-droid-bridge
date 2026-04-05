@@ -4,6 +4,7 @@ import base64
 import logging
 import struct
 import sys
+from contextlib import asynccontextmanager
 from typing import Annotated, Literal
 
 from fastmcp import FastMCP
@@ -23,16 +24,33 @@ from .models import (
 )
 from .recorder import setup_logging
 from .recorder.middleware import ToolRecorderMiddleware
-from .startup import apply_tool_deny_list, load_extra_packs
+from .startup import _pack_meta, apply_tool_deny_list, build_server_instructions, load_extra_packs
 
 logger = logging.getLogger(__name__)
+
+
+_CORE_DESCRIPTION = (
+    "Device control via ADB — UI reading, gestures, text input, screenshots,"
+    " app launch, screen change detection, and raw ADB access."
+)
+
+_SERVER_HEADER = "Agent Droid Bridge — Android device control via ADB."
+
+
+@asynccontextmanager
+async def _lifespan(server: FastMCP):
+    tools = await server.list_tools()
+    _pack_meta["core"] = _CORE_DESCRIPTION
+    server.instructions = build_server_instructions(tools, pack_meta=_pack_meta, header=_SERVER_HEADER)
+    yield {}
+
 
 settings = get_settings()
 logging.basicConfig(level=settings.server.log_level)
 
 adb = ADBService(settings)
 device_info_service = DeviceInfoService(adb)
-mcp = FastMCP("Agent Droid Bridge")
+mcp = FastMCP("Agent Droid Bridge", lifespan=_lifespan)
 
 _logging_config = get_logging_config()
 setup_logging(_logging_config)

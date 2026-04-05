@@ -44,6 +44,8 @@ Optional feature modules that register additional tool groups at startup.
 | `extra_tool_packs.enabled` | `false` | boolean | When `false`, no extra packs are loaded regardless of the `packs` list. |
 | `extra_tool_packs.packs` | `[]` | list of strings | Names of packs to load when `enabled` is `true`. Example: `["debugging"]`. |
 
+Pack authors can optionally expose a module-level `PACK_META = {"description": "..."}` dict in their pack module. When present, the description appears in the server's startup instructions under that pack's section. This is intended for future pack implementations — regular users do not need to configure this.
+
 ### `logging`
 
 | Key | Default | Type | Description |

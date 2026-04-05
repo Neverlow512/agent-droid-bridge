@@ -71,7 +71,7 @@ Add to `~/.cursor/mcp.json` under the `mcpServers` key:
         "ADB_EXECUTION_MODE": "unrestricted",
         "ADB_ALLOW_SHELL": "true",
         "MCP_LOG_ENABLED": "false",
-        "MCP_LOG_DIR": "/home/youruser/logs/agent-droid-bridge"
+        "MCP_LOG_DIR": "~/logs/agent-droid-bridge"
       }
     }
   }
@@ -92,7 +92,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
         "ADB_EXECUTION_MODE": "unrestricted",
         "ADB_ALLOW_SHELL": "true",
         "MCP_LOG_ENABLED": "false",
-        "MCP_LOG_DIR": "/home/youruser/logs/agent-droid-bridge"
+        "MCP_LOG_DIR": "~/logs/agent-droid-bridge"
       }
     }
   }
@@ -115,7 +115,7 @@ Add to your workspace or user `settings.json` under the `mcp.servers` key:
           "ADB_EXECUTION_MODE": "unrestricted",
           "ADB_ALLOW_SHELL": "true",
           "MCP_LOG_ENABLED": "false",
-          "MCP_LOG_DIR": "/home/youruser/logs/agent-droid-bridge"
+          "MCP_LOG_DIR": "~/logs/agent-droid-bridge"
         }
       }
     }
@@ -135,7 +135,7 @@ If running from a local clone instead of `uvx`, replace `command` and `args` wit
   "ADB_EXECUTION_MODE": "unrestricted",
   "ADB_ALLOW_SHELL": "true",
   "MCP_LOG_ENABLED": "false",
-  "MCP_LOG_DIR": "/home/youruser/logs/agent-droid-bridge"
+  "MCP_LOG_DIR": "~/logs/agent-droid-bridge"
 }
 ```
 
