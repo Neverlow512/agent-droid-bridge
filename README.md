@@ -125,8 +125,5 @@ Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines
 
 To report a security vulnerability, follow the process in [SECURITY.md](SECURITY.md) — do not open a public issue.
 
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=Neverlow512/agent-droid-bridge&type=Date)](https://star-history.com/#Neverlow512/agent-droid-bridge&Date)
 <!-- mcp-name: io.github.Neverlow512/agent-droid-bridge -->
 
