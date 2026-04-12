@@ -8,6 +8,7 @@ from collections.abc import Sequence
 from fastmcp import FastMCP
 from fastmcp.tools.tool import Tool
 
+from .adb import ADBService
 from .config import Settings
 
 logger = logging.getLogger(__name__)
@@ -75,7 +76,7 @@ def apply_tool_deny_list(mcp: FastMCP, settings: Settings) -> None:
             logger.warning("Tool '%s' in tools.denied not found — skipping", tool_name)
 
 
-def load_extra_packs(mcp: FastMCP, settings: Settings) -> None:
+def load_extra_packs(mcp: FastMCP, settings: Settings, adb: ADBService) -> None:
     if not settings.extra_tool_packs.enabled or not settings.extra_tool_packs.packs:
         return
     for name in settings.extra_tool_packs.packs:
@@ -87,7 +88,7 @@ def load_extra_packs(mcp: FastMCP, settings: Settings) -> None:
         register = getattr(module, "register", None)
         if register is None:
             raise ValueError(f"Extra tool pack '{name}' has no register() function")
-        register(mcp)
+        register(mcp, adb)
         meta = getattr(module, "PACK_META", None)
         if meta and "description" in meta:
             _pack_meta[name] = meta["description"]

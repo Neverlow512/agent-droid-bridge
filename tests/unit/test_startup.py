@@ -45,14 +45,14 @@ class TestLoadExtraPacks:
             extra_tool_packs=ExtraToolPacksConfig(enabled=False, packs=["some_pack"])
         )
         with patch("importlib.import_module") as mock_import:
-            load_extra_packs(mcp, settings)
+            load_extra_packs(mcp, settings, MagicMock())
             mock_import.assert_not_called()
 
     def test_empty_packs_list_not_loaded(self) -> None:
         mcp = MagicMock()
         settings = Settings(extra_tool_packs=ExtraToolPacksConfig(enabled=True, packs=[]))
         with patch("importlib.import_module") as mock_import:
-            load_extra_packs(mcp, settings)
+            load_extra_packs(mcp, settings, MagicMock())
             mock_import.assert_not_called()
 
     def test_invalid_pack_name_raises_value_error(self) -> None:
@@ -62,7 +62,7 @@ class TestLoadExtraPacks:
         )
         with patch("importlib.import_module", side_effect=ImportError("no module")):
             with pytest.raises(ValueError, match="nonexistent_pack"):
-                load_extra_packs(mcp, settings)
+                load_extra_packs(mcp, settings, MagicMock())
 
     def test_missing_register_function_raises_value_error(self) -> None:
         mcp = MagicMock()
@@ -73,10 +73,11 @@ class TestLoadExtraPacks:
         mock_module.register = None
         with patch("importlib.import_module", return_value=mock_module):
             with pytest.raises(ValueError, match="register"):
-                load_extra_packs(mcp, settings)
+                load_extra_packs(mcp, settings, MagicMock())
 
     def test_valid_pack_calls_register(self) -> None:
         mcp = MagicMock()
+        mock_adb = MagicMock()
         settings = Settings(
             extra_tool_packs=ExtraToolPacksConfig(enabled=True, packs=["test_pack"])
         )
@@ -84,8 +85,8 @@ class TestLoadExtraPacks:
         mock_module = MagicMock()
         mock_module.register = mock_register
         with patch("importlib.import_module", return_value=mock_module):
-            load_extra_packs(mcp, settings)
-            mock_register.assert_called_once_with(mcp)
+            load_extra_packs(mcp, settings, mock_adb)
+            mock_register.assert_called_once_with(mcp, mock_adb)
 
 
 @dataclass
@@ -206,7 +207,7 @@ class TestLoadExtraPacksMetadata:
         mock_module = MagicMock()
         mock_module.PACK_META = {"description": "Some description"}
         with patch("importlib.import_module", return_value=mock_module):
-            load_extra_packs(mcp, settings)
+            load_extra_packs(mcp, settings, MagicMock())
         assert _pack_meta["my_pack"] == "Some description"
 
     def test_pack_without_pack_meta_not_stored(self) -> None:
@@ -216,7 +217,7 @@ class TestLoadExtraPacksMetadata:
         )
         mock_module = MagicMock(spec=["register"])
         with patch("importlib.import_module", return_value=mock_module):
-            load_extra_packs(mcp, settings)
+            load_extra_packs(mcp, settings, MagicMock())
         assert "bare_pack" not in _pack_meta
 
     def test_pack_with_pack_meta_missing_description_key_not_stored(self) -> None:
@@ -227,7 +228,7 @@ class TestLoadExtraPacksMetadata:
         mock_module = MagicMock()
         mock_module.PACK_META = {"other_key": "value"}
         with patch("importlib.import_module", return_value=mock_module):
-            load_extra_packs(mcp, settings)
+            load_extra_packs(mcp, settings, MagicMock())
         assert "partial_pack" not in _pack_meta
 
     def test_multiple_packs_each_stored_independently(self) -> None:
@@ -245,7 +246,7 @@ class TestLoadExtraPacksMetadata:
             return mod
 
         with patch("importlib.import_module", side_effect=fake_import):
-            load_extra_packs(mcp, settings)
+            load_extra_packs(mcp, settings, MagicMock())
         assert _pack_meta["pack_a"] == "Pack A desc"
         assert _pack_meta["pack_b"] == "Pack B desc"
 

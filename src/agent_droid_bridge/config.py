@@ -37,9 +37,10 @@ class ADBConfig(BaseModel):
     command_timeout: int = 30
     screenshot_timeout: int = 60
     ui_change_timeout: int = 10
+    aapt_timeout: int = 10
     ui_change_poll_interval: float = 0.5
 
-    @field_validator("command_timeout", "screenshot_timeout", "ui_change_timeout")
+    @field_validator("command_timeout", "screenshot_timeout", "ui_change_timeout", "aapt_timeout")
     @classmethod
     def validate_positive(cls, v: int) -> int:
         if v <= 0:

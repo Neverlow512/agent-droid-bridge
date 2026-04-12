@@ -3,6 +3,7 @@ adb:
   command_timeout: 30
   screenshot_timeout: 60
   ui_change_timeout: 10
+  aapt_timeout: 10  # timeout for aapt dump badging on host
   ui_change_poll_interval: 0.5
 
 server:
@@ -26,7 +27,8 @@ tools:
   denied: []
 
 extra_tool_packs:
-  # optional feature modules loaded at startup — each pack registers a group of tools
-  # example packs: debugging
+  # optional feature modules loaded at startup
+  # available packs: app_manager
+  # to enable: set enabled to true and list pack names e.g. ["app_manager", "other_pack"]
   enabled: false
-  packs: []
+  # packs: ["app_manager"]

@@ -42,9 +42,9 @@ Optional feature modules that register additional tool groups at startup.
 | Key | Default | Type | Description |
 |---|---|---|---|
 | `extra_tool_packs.enabled` | `false` | boolean | When `false`, no extra packs are loaded regardless of the `packs` list. |
-| `extra_tool_packs.packs` | `[]` | list of strings | Names of packs to load when `enabled` is `true`. Example: `["debugging"]`. |
+| `extra_tool_packs.packs` | `[]` | list of strings | Names of packs to load when `enabled` is `true`. Example: `["app_manager"]`. |
 
-Pack authors can optionally expose a module-level `PACK_META = {"description": "..."}` dict in their pack module. When present, the description appears in the server's startup instructions under that pack's section. This is intended for future pack implementations — regular users do not need to configure this.
+Pack authors can optionally expose a module-level `PACK_META = {"description": "..."}` dict in their pack module. When present, the description appears in the server's startup instructions under that pack's section. The `app_manager` pack is the available pack. For the pack contract and instructions on writing your own pack, see [extra-tool-packs.md](extra-tool-packs.md).
 
 ### `logging`
 

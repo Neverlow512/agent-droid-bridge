@@ -205,3 +205,142 @@ Returns structured information about the connected Android device in a single ca
 | `all` | All fields from all three modes combined |
 
 *Example: "What device is connected and is it rooted?"*
+
+---
+
+## app_manager pack
+
+Tools in this section are part of the `app_manager` extra tool pack. They must be enabled in `adb_config.yaml` before use — see [extra-tool-packs.md](extra-tool-packs.md).
+
+## list_packages
+
+Lists installed packages on the device with optional filtering, search, and detail levels.
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `filter` | string | No | `all` | `'all'`: every installed package. `'user'`: user-installed (third-party) apps only. `'system'`: system packages only. `'disabled'`: disabled packages only. |
+| `search` | string | No | — | Substring filter applied to package names before results are returned (case-insensitive). |
+| `mode` | string | No | `summary` | `'summary'`: package names only, fast. `'detailed'`: adds version, install time, APK path — expensive on large lists. Use `search` to narrow first. |
+| `limit` | integer | No | — | Maximum number of results to return after filtering. `0` returns all results. |
+| `device_serial` | string | No | auto-detect | Android device serial (pattern: `^[a-zA-Z0-9\-:.]+$`, max 64 chars) |
+
+*Returns: `packages` (list), `total` (int), `filter` (string), `mode` (string).*
+
+*Example: "List all user-installed apps on the device."*
+
+## get_app_info
+
+Returns full static metadata for a single installed app — version, install time, APK paths, permissions, and exported components.
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `package` | string | Yes | — | Android package name (e.g. `com.example.app`) |
+| `sections` | list of strings | No | all | Sections to fetch: `'metadata'`, `'permissions'`, `'components'`. Pass `['all']` or omit to fetch everything. Request only what you need. |
+| `search` | string | No | — | Substring filter applied to component names and permission strings in the result (case-insensitive). |
+| `device_serial` | string | No | auto-detect | Android device serial (pattern: `^[a-zA-Z0-9\-:.]+$`, max 64 chars) |
+
+*Returns: `package`, `version_name`, `version_code`, `install_time`, `update_time`, `apk_paths`, `install_granted` (permissions), `runtime_granted` (permissions), `components` (list of `package/class` strings, ready for use with `inject_intent`).*
+
+*Example: "Get all information about com.example.app."*
+
+## install_app
+
+Installs an APK from a host path onto the device.
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `apk_path` | string | Yes | — | Absolute path to the APK file on the host machine. |
+| `device_serial` | string | No | auto-detect | Android device serial (pattern: `^[a-zA-Z0-9\-:.]+$`, max 64 chars) |
+
+*Returns: `success` (bool), `package` (string or null), `output` (raw install output).*
+
+*Example: "Install the APK at /tmp/myapp.apk."*
+
+## uninstall_app
+
+Removes an installed app by package name.
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `package` | string | Yes | — | Android package name (e.g. `com.example.app`) |
+| `keep_data` | boolean | No | `false` | When `true`, retains app data and cache after uninstall. |
+| `device_serial` | string | No | auto-detect | Android device serial (pattern: `^[a-zA-Z0-9\-:.]+$`, max 64 chars) |
+
+*Example: "Uninstall com.example.app but keep its data."*
+
+## pull_apk
+
+Extracts the installed APK from the device to the host machine.
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `package` | string | Yes | — | Android package name (e.g. `com.example.app`) |
+| `destination` | string | Yes | — | Absolute path to an existing directory on the host where the APK will be written. |
+| `split` | string | No | `base` | `'base'`: pulls only the main base APK. `'all'`: pulls all APK splits. |
+| `device_serial` | string | No | auto-detect | Android device serial (pattern: `^[a-zA-Z0-9\-:.]+$`, max 64 chars) |
+
+*Returns: `package`, `files` (list of pulled file paths on the host), `destination`.*
+
+*Example: "Extract the APK for com.example.app to /tmp/apks/."*
+
+## manage_permission
+
+Grants, revokes, checks, or lists runtime permissions for an app.
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `package` | string | Yes | — | Android package name (e.g. `com.example.app`) |
+| `action` | string | Yes | — | `'grant'`: grants the permission. `'revoke'`: revokes the permission. `'check'`: returns whether the permission is currently granted. `'list'`: returns all declared, install-granted, and runtime-granted permissions — no `permission` argument needed. |
+| `permission` | string | No | — | Required for `grant`, `revoke`, and `check`. Android permission name (e.g. `android.permission.CAMERA`). |
+| `device_serial` | string | No | auto-detect | Android device serial (pattern: `^[a-zA-Z0-9\-:.]+$`, max 64 chars) |
+
+*Returns: `action`, `package`, `permission`, `granted` (bool, `check` action only), `permissions` (list, `list` action only).*
+
+*Example: "Check whether com.example.app has the CAMERA permission."*
+
+## launch_app_extra
+
+Launches an app by package name, automatically resolving the main launcher activity. Use this when the component name is unknown. Use `launch_app` when the component is already known.
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `package` | string | Yes | — | Android package name (e.g. `com.example.app`) |
+| `device_serial` | string | No | auto-detect | Android device serial (pattern: `^[a-zA-Z0-9\-:.]+$`, max 64 chars) |
+
+*Returns: `package`, `component` (resolved `package/activity` string), `pid` (int or null — best-effort, may be null if the process is not immediately visible after launch).*
+
+*Example: "Open the Settings app."*
+
+## manage_app
+
+Controls app runtime state — force stop, clear data, clear cache, enable, or disable.
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `package` | string | Yes | — | Android package name (e.g. `com.example.app`) |
+| `action` | string | Yes | — | `'stop'`: force-stops the app. `'clear_data'`: permanently wipes all app data (irreversible). `'clear_cache'`: removes cached files only — requires root. `'enable'`: re-enables a disabled app. `'disable'`: disables the app. |
+| `device_serial` | string | No | auto-detect | Android device serial (pattern: `^[a-zA-Z0-9\-:.]+$`, max 64 chars) |
+
+*Returns: `action`, `package`, `success` (bool), `requires_root` (bool or null — `false` when root is available and the action succeeded, `true` when root is needed but unavailable, `null` for actions that do not require root).*
+
+*Example: "Force stop com.example.app."*
+
+## inject_intent
+
+Fires an intent at a component using `am start`, `am broadcast`, or `am startservice`.
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `intent_type` | string | No | `activity` | `'activity'`: uses `am start` — for launching UI components. `'broadcast'`: uses `am broadcast` — for system or app-wide events. `'service'`: uses `am startservice` — for background service components. |
+| `action` | string | No | — | Intent action string (e.g. `android.intent.action.VIEW`). |
+| `package` | string | No | — | Target package. Used with `-p` when no explicit component is given. |
+| `component` | string | No | — | Target component in `package/class` format (e.g. `com.example.app/.MainActivity`). Use `get_app_info` to retrieve exported components. |
+| `uri` | string | No | — | Data URI passed to the intent (e.g. `https://example.com` or `content://...`). |
+| `mime_type` | string | No | — | MIME type for the intent data (e.g. `text/plain`). |
+| `extras` | object | No | — | Key-value string extras passed as `--es key value`. All values are treated as strings. |
+| `filter` | string | No | — | Case-insensitive substring filter applied to output lines. Use to extract signal from verbose broadcast output. |
+| `device_serial` | string | No | auto-detect | Android device serial (pattern: `^[a-zA-Z0-9\-:.]+$`, max 64 chars) |
+
+*Returns: `component`, `intent_type`, `output` (raw am command output).*
+
+*Example: "Launch the main activity of com.example.app."*

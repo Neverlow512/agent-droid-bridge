@@ -55,6 +55,18 @@ A `feat!` or `BREAKING CHANGE:` footer triggers a MAJOR version bump. MAJOR mean
 - Keep files under 300 lines. Split by responsibility when a file grows beyond that.
 - Linter: `ruff` with `line-length = 100`. Run `ruff check .` and `ruff format .` before committing.
 
+## Adding an extra tool pack
+
+An extra tool pack is an opt-in feature module that registers additional MCP tools at server startup without modifying the core toolset.
+
+- Pack location: `src/agent_droid_bridge/extra_tool_packs/<name>/`
+- Required entry point: `__init__.py` with `async def register(mcp: FastMCP, adb: ADBService) -> None`
+- Optional metadata: `PACK_META = {"name": "...", "description": "..."}` — when present, the description appears in the server's startup instructions under the pack's section
+- Enable locally by setting `enabled: true` and listing the pack name in `adb_config.yaml`
+- Tests: unit tests for the service layer, handler tests for the tool functions; place in `tests/unit/`
+
+See [docs/extra-tool-packs.md](docs/extra-tool-packs.md) for the full contract and a minimal example.
+
 ## Submitting a PR
 
 - Open a PR from your branch to `main`.

@@ -6,3 +6,4 @@ build
 twine
 commitizen
 pre-commit
+bandit

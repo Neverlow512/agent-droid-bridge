@@ -29,7 +29,8 @@ The demo above runs through a few straightforward tasks to show what a connected
 
 ## What it does
 
-- Exposes 14 MCP tools covering screen capture, UI inspection, screen reading, element extraction, touch and swipe input, text entry, keycode events, app launching, arbitrary ADB commands, and device capability inspection
+- Exposes 14 core MCP tools covering screen capture, UI inspection, screen reading, element extraction, touch and swipe input, text entry, keycode events, app launching, arbitrary ADB commands, and device capability inspection
+- Extra tool packs extend the core toolset via opt-in config — `app_manager` is the first pack, adding 9 tools for package management, app control, APK extraction, permission management, and intent injection
 - Auto-detects the connected device when only one is present; presents a device list and requires the user to choose when multiple are connected
 - All commands parsed via `shlex` — no shell injection possible
 - Runs over stdio, compatible with any MCP-capable AI client
@@ -102,6 +103,26 @@ Full setup guide: [docs/setup.md](docs/setup.md)
 | `get_screen_text`     | Returns all visible text on screen sorted top-to-bottom, as plain text                                                                                            |
 | `check_device_capabilities` | Returns structured device information — identity, security posture, and hardware specs — in a single call; supports `identity`, `security`, `hardware`, and `all` modes |
 
+### Extra tool packs
+
+Optional packs extend the core toolset and must be enabled in `adb_config.yaml`. See [docs/extra-tool-packs.md](docs/extra-tool-packs.md).
+
+**app_manager**
+
+Package management, app lifecycle control, APK extraction, permission management, and intent injection.
+
+| Tool | What it does |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `list_packages` | Lists installed packages with optional filtering, search, and detail levels |
+| `get_app_info` | Returns full static metadata for a single installed app |
+| `install_app` | Installs an APK from a host path onto the device |
+| `uninstall_app` | Removes an installed app by package name |
+| `pull_apk` | Extracts the installed APK from the device to the host |
+| `manage_permission` | Grants, revokes, checks, or lists runtime permissions for an app |
+| `launch_app_extra` | Launches an app by package name, auto-resolving the launcher activity |
+| `manage_app` | Controls app runtime state — stop, clear data, clear cache, enable, disable |
+| `inject_intent` | Fires an intent at a component via `am start`, `am broadcast`, or `am startservice` |
+
 
 Full parameter reference: [docs/tools.md](docs/tools.md)
 
@@ -117,9 +138,10 @@ Session recording is configured separately via `logging_config.yaml`. Enable it 
 | File                                           | Description                                               |
 | ---------------------------------------------- | --------------------------------------------------------- |
 | [docs/setup.md](docs/setup.md)                 | Prerequisites, installation, and MCP client configuration |
-| [docs/tools.md](docs/tools.md)                 | Full parameter reference for all 14 tools                 |
+| [docs/tools.md](docs/tools.md)                 | Full parameter reference for all tools                 |
 | [docs/configuration.md](docs/configuration.md) | Reference for `adb_config.yaml` and environment variables |
 | [docs/logging.md](docs/logging.md)             | Session recorder — log files, levels, retention, and activation |
+| [docs/extra-tool-packs.md](docs/extra-tool-packs.md) | Extra tool packs — enabling packs, the pack contract, and writing your own |
 
 
 ## Contributing

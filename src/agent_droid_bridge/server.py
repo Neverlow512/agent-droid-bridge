@@ -25,6 +25,7 @@ from .models import (
 from .recorder import setup_logging
 from .recorder.middleware import ToolRecorderMiddleware
 from .startup import _pack_meta, apply_tool_deny_list, build_server_instructions, load_extra_packs
+from .utils.types import DeviceSerial
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +42,9 @@ _SERVER_HEADER = "Agent Droid Bridge — Android device control via ADB."
 async def _lifespan(server: FastMCP):
     tools = await server.list_tools()
     _pack_meta["core"] = _CORE_DESCRIPTION
-    server.instructions = build_server_instructions(tools, pack_meta=_pack_meta, header=_SERVER_HEADER)
+    server.instructions = build_server_instructions(
+        tools, pack_meta=_pack_meta, header=_SERVER_HEADER
+    )
     yield {}
 
 
@@ -55,26 +58,6 @@ mcp = FastMCP("Agent Droid Bridge", lifespan=_lifespan)
 _logging_config = get_logging_config()
 setup_logging(_logging_config)
 mcp.add_middleware(ToolRecorderMiddleware())
-
-DeviceSerial = Annotated[
-    str | None,
-    Field(
-        default=None,
-        pattern=r"^[a-zA-Z0-9\-:.]+$",
-        max_length=64,
-        description=(
-            "Android device serial (e.g. 'emulator-5554' or '192.168.1.10:5555'). "
-            "Omit only when a single device is connected. "
-            "If the tool returns a multi-device error: STOP. Present the device list "
-            "to the user verbatim and wait for their explicit choice. "
-            "Do NOT retry with a guessed or inferred serial — this is a hard "
-            "requirement. Once the user provides a serial, use it for every "
-            "subsequent call in this session. To switch devices mid-session, "
-            "ask the user first."
-        ),
-    ),
-]
-
 
 @mcp.tool()
 async def get_ui_hierarchy(device_serial: DeviceSerial = None) -> str:
@@ -457,7 +440,7 @@ async def check_device_capabilities(
 
 
 apply_tool_deny_list(mcp, settings)
-load_extra_packs(mcp, settings)
+load_extra_packs(mcp, settings, adb)
 
 _HELP = """\
 Agent Droid Bridge - MCP server for Android device control via ADB
