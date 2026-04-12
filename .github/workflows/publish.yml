@@ -57,6 +57,7 @@ jobs:
         with:
           fetch-depth: 0
           ref: main
+          ssh-key: ${{ secrets.CHANGELOG_DEPLOY_KEY }}
 
       - name: Configure Git
         run: |
