@@ -243,6 +243,40 @@ jobs:
           prerelease: false
           files: dist/*
 
+  update-github-release:
+    name: Update GitHub Release Body
+    needs: [create-github-release, update-changelog]
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.dry_run }}
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Extract Changelog for This Version
+        id: changelog
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          ESCAPED="${VERSION//./\\.}"
+          BODY=$(awk "/^## v${ESCAPED}/{found=1} found && /^## v/ && !/^## v${ESCAPED}/{exit} found{print}" CHANGELOG.md)
+          if [ -z "$BODY" ]; then
+            BODY="See [CHANGELOG](https://github.com/Neverlow512/agent-droid-bridge/blob/main/CHANGELOG.md) for details."
+          fi
+          echo "body<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$BODY" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          body: ${{ steps.changelog.outputs.body }}
+
   publish-mcp-registry:
     name: Publish to MCP Registry
     needs: publish-pypi
