@@ -1,3 +1,20 @@
+## v0.5.0 (2026-04-12)
+
+### Features
+
+- add extra tool pack system and app_manager pack (0.5.0, beta)
+- Introduce extra tool pack system — optional domain-specific tool modules loaded at startup via adb_config.yaml
+- Add app_manager as the first pack, providing 9 new tools: list_packages, get_app_info, install_app, uninstall_app, pull_apk, manage_permission, launch_app_extra, manage_app, inject_intent
+- Implement full service layer for pm, am, and shell-based ADB commands with structured Pydantic responses
+- Add dumpsys package parser with API 30+ compatibility — metadata, permissions, and component extraction
+- Normalize component names to package/class format for direct use with inject_intent
+- Auto-resolve launcher activity via pm resolve-activity --brief in launch_app_extra
+- Populate requires_root field dynamically based on root availability for manage_app clear_cache
+- Add docs/extra-tool-packs.md — pack contract, enabling packs, and authoring guide
+- Update docs/tools.md with full app_manager tool reference
+- Update README, configuration.md, and CONTRIBUTING.md for the pack system
+- Bump development status to Beta
+
 ## v0.4.2 (2026-04-05)
 
 ### Bug Fixes
