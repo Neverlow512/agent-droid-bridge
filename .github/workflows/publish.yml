@@ -69,9 +69,10 @@ jobs:
           TAG="${GITHUB_REF_NAME}"
           VERSION="${TAG#v}"
           DATE=$(date -u +%Y-%m-%d)
-          # Read from the commit before the bump commit — that's the squash merge commit
-          SUBJECT=$(git log -1 --format="%s" "${TAG}~1")
-          BODY=$(git log -1 --format="%b" "${TAG}~1")
+          # Find the squash merge commit — first feat/fix/perf/refactor commit reachable from the tag
+          SQUASH=$(git log "${TAG}" --format="%H %s" | awk '$0 ~ / (feat|fix|perf|refactor)\(/ {print $1; exit}')
+          SUBJECT=$(git log -1 --format="%s" "$SQUASH")
+          BODY=$(git log -1 --format="%b" "$SQUASH")
 
           CLEAN_SUBJECT=$(echo "$SUBJECT" | sed 's/^[a-z]*([^)]*): //' | sed 's/^[a-z]*: //')
           TYPE=$(echo "$SUBJECT" | sed 's/\([a-z]*\).*/\1/')
