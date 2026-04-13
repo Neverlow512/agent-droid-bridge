@@ -1,6 +1,6 @@
 [project]
 name = "agent-droid-bridge"
-version = "0.5.0"
+version = "0.5.1"
 description = "MCP server giving AI agents eyes and hands inside Android devices via ADB"
 readme = "README.md"
 license = { text = "MIT" }
@@ -78,7 +78,7 @@ testpaths = ["tests"]
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.5.0"
+version = "0.5.1"
 version_files = [
     "pyproject.toml:version = \"",
     "src/agent_droid_bridge/__init__.py:__version__ = \""
