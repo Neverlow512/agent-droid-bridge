@@ -116,7 +116,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install Build Dependencies
-        run: pip install hatchling
+        run: pip install hatchling==1.29.0
 
       - name: Build Wheel and SDist
         run: python -m hatchling build
