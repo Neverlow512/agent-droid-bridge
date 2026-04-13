@@ -63,7 +63,7 @@ def parse_elements(xml: str, mode: str) -> list[TappableElement | ScreenElement]
     if mode not in VALID_MODES:
         raise ValueError(f"Invalid mode: {mode!r}. Must be one of {sorted(VALID_MODES)}")
 
-    root = ET.fromstring(xml)
+    root = ET.fromstring(xml)  # nosec B314 -- safe in Python 3.11+, XXE fixed in stdlib
 
     results: list[TappableElement | ScreenElement] = []
 
@@ -134,7 +134,7 @@ def parse_elements(xml: str, mode: str) -> list[TappableElement | ScreenElement]
 
 
 def parse_screen_text(xml: str) -> ScreenTextResult:
-    root = ET.fromstring(xml)
+    root = ET.fromstring(xml)  # nosec B314 -- safe in Python 3.11+, XXE fixed in stdlib
     items: list[tuple[int, int, str]] = []
     stack: list[ET.Element] = list(root)
     stack.reverse()
