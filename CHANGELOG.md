@@ -1,3 +1,13 @@
+## v0.5.1 (2026-04-13)
+
+### Bug Fixes
+
+- bump fastmcp and pytest to address known vulnerabilities
+- fastmcp >=3.2.0 resolves CVE-2026-32871, CVE-2026-27124, CVE-2025-64340
+- pytest >=9.0.3 resolves CVE-2025-71176
+- pip-audit added to dev dependencies
+- OpenSSF Scorecard workflow added, runs on every push to main
+
 ## v0.5.0 (2026-04-12)
 
 ### Features
