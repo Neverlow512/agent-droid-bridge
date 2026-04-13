@@ -1,9 +1,10 @@
 -r requirements.txt
 ruff
-pytest
+pytest>=9.0.3
 pytest-asyncio
 build
 twine
 commitizen
 pre-commit
 bandit
+pip-audit==2.10.0

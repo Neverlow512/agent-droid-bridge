@@ -10,7 +10,7 @@ Agent Droid Bridge is an MCP server that connects AI agents to Android devices a
 
 ---
 
-[![agent-droid-bridge MCP server](https://glama.ai/mcp/servers/Neverlow512/agent-droid-bridge/badges/card.svg)](https://glama.ai/mcp/servers/Neverlow512/agent-droid-bridge)
+[![agent-droid-bridge MCP server](https://glama.ai/mcp/servers/Neverlow512/agent-droid-bridge/badges/card.svg?v=2)](https://glama.ai/mcp/servers/Neverlow512/agent-droid-bridge)
 
 ## Demo
 
