@@ -1,3 +1,24 @@
+## v0.6.0 (2026-04-15)
+
+### Features
+
+- env-first configuration and documentation overhaul
+- Replace YAML-only configuration with env-first loading; all settings now
+  configurable from the MCP client env block with no file editing required
+- Add ADB_CONFIG_SOURCE to switch between env mode (default) and legacy
+  YAML mode, preserving full backward compatibility for existing users
+- Add 30 unit tests covering env loading, comma-split lists, and config
+  source dispatch
+- Add docs/troubleshooting.md covering the most common setup issues with
+  per-client restart instructions
+- Add docs/workflows.md with three advanced multi-tool workflow examples:
+  app crash triage, UI state-aware automation, and exported component probing
+- Rewrite README for clarity and promotional appeal; remove redundant prose
+  and AI-style em-dashes
+- Fix server.json version drift (0.1.3 -> 0.5.1) and add it to commitizen
+  version_files so it stays in sync on future releases
+- Fix logging.md example showing MCP_LOG_ENABLED=false in the enabling section
+
 ## v0.5.1 (2026-04-13)
 
 ### Bug Fixes
