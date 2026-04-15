@@ -1,3 +1,13 @@
+## v0.6.1 (2026-04-15)
+
+### Bug Fixes
+
+- add environment variable schema to server.json
+- Add environmentVariables block to server.json so MCP registry and
+  compatible clients display all configurable env vars at install time
+- See v0.6.0 for the full feature release: env-first configuration,
+  new workflows, troubleshooting guide, and documentation overhaul
+
 ## v0.6.0 (2026-04-15)
 
 ### Features
