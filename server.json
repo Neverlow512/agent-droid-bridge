@@ -17,7 +17,122 @@
       "runtimeHint": "uvx",
       "transport": {
         "type": "stdio"
-      }
+      },
+      "environmentVariables": [
+        {
+          "name": "ADB_EXECUTION_MODE",
+          "description": "Security mode. 'unrestricted' allows all shell commands with an optional denylist. 'restricted' allows only commands in ADB_SHELL_ALLOWLIST.",
+          "default": "unrestricted",
+          "isRequired": false,
+          "choices": ["unrestricted", "restricted"]
+        },
+        {
+          "name": "ADB_ALLOW_SHELL",
+          "description": "Set to 'false' to block all adb shell commands regardless of execution mode.",
+          "default": "true",
+          "isRequired": false,
+          "format": "boolean"
+        },
+        {
+          "name": "ADB_PATH",
+          "description": "Path to the ADB binary. Use a full path if adb is not on your system PATH.",
+          "default": "adb",
+          "isRequired": false,
+          "placeholder": "/usr/bin/adb or C:\\platform-tools\\adb.exe"
+        },
+        {
+          "name": "ADB_EXTRA_TOOL_PACKS",
+          "description": "Comma-separated list of extra tool packs to load. Set to 'app_manager' to enable 9 additional app management tools.",
+          "default": "",
+          "isRequired": false,
+          "placeholder": "app_manager"
+        },
+        {
+          "name": "ADB_DENIED_TOOLS",
+          "description": "Comma-separated list of tool names to hide from the agent at startup.",
+          "default": "",
+          "isRequired": false,
+          "placeholder": "execute_adb_command,get_ui_hierarchy"
+        },
+        {
+          "name": "ADB_SHELL_ALLOWLIST",
+          "description": "Comma-separated list of shell commands permitted in restricted mode. Empty blocks all shell commands.",
+          "default": "",
+          "isRequired": false,
+          "placeholder": "dumpsys,pm,am"
+        },
+        {
+          "name": "ADB_SHELL_DENYLIST",
+          "description": "Comma-separated list of shell commands blocked in unrestricted mode.",
+          "default": "",
+          "isRequired": false,
+          "placeholder": "rm,reboot,su"
+        },
+        {
+          "name": "MCP_LOG_ENABLED",
+          "description": "Set to 'true' to enable session logging. Requires MCP_LOG_DIR.",
+          "default": "false",
+          "isRequired": false,
+          "format": "boolean"
+        },
+        {
+          "name": "MCP_LOG_DIR",
+          "description": "Absolute path to the directory where session logs are written. Required when MCP_LOG_ENABLED is true.",
+          "default": "",
+          "isRequired": false,
+          "format": "filepath",
+          "placeholder": "/home/user/logs/agent-droid-bridge"
+        },
+        {
+          "name": "ADB_LOG_LEVEL",
+          "description": "Server process log level.",
+          "default": "INFO",
+          "isRequired": false,
+          "choices": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+        },
+        {
+          "name": "ADB_COMMAND_TIMEOUT",
+          "description": "Maximum seconds to wait for any ADB command.",
+          "default": "30",
+          "isRequired": false,
+          "format": "number"
+        },
+        {
+          "name": "ADB_SCREENSHOT_TIMEOUT",
+          "description": "Maximum seconds to wait for a screenshot capture.",
+          "default": "60",
+          "isRequired": false,
+          "format": "number"
+        },
+        {
+          "name": "ADB_UI_CHANGE_TIMEOUT",
+          "description": "Default timeout in seconds for detect_ui_change.",
+          "default": "10",
+          "isRequired": false,
+          "format": "number"
+        },
+        {
+          "name": "ADB_UI_CHANGE_POLL_INTERVAL",
+          "description": "How often in seconds detect_ui_change polls the UI hierarchy.",
+          "default": "0.5",
+          "isRequired": false,
+          "format": "number"
+        },
+        {
+          "name": "ADB_AAPT_TIMEOUT",
+          "description": "Maximum seconds to wait for aapt dump badging, used by the app_manager pack.",
+          "default": "10",
+          "isRequired": false,
+          "format": "number"
+        },
+        {
+          "name": "ADB_CONFIG_SOURCE",
+          "description": "Set to 'yaml' to load configuration from adb_config.yaml instead of environment variables.",
+          "default": "env",
+          "isRequired": false,
+          "choices": ["env", "yaml"]
+        }
+      ]
     }
   ]
 }
