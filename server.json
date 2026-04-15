@@ -3,7 +3,7 @@
   "name": "io.github.Neverlow512/agent-droid-bridge",
   "title": "Agent Droid Bridge",
   "description": "MCP server giving AI agents eyes and hands inside Android devices via ADB",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "repository": {
     "url": "https://github.com/Neverlow512/agent-droid-bridge",
     "source": "github"
@@ -13,7 +13,7 @@
       "registryType": "pypi",
       "registryBaseUrl": "https://pypi.org",
       "identifier": "agent-droid-bridge",
-      "version": "0.6.0",
+      "version": "0.6.1",
       "runtimeHint": "uvx",
       "transport": {
         "type": "stdio"
