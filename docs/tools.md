@@ -210,7 +210,7 @@ Returns structured information about the connected Android device in a single ca
 
 ## app_manager pack
 
-Tools in this section are part of the `app_manager` extra tool pack. They must be enabled in `adb_config.yaml` before use — see [extra-tool-packs.md](extra-tool-packs.md).
+Tools in this section are part of the `app_manager` extra tool pack. Enable the pack by setting `ADB_EXTRA_TOOL_PACKS=app_manager` in your MCP client's `env` block — see [extra-tool-packs.md](extra-tool-packs.md).
 
 ## list_packages
 

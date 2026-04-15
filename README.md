@@ -6,9 +6,7 @@ Agent Droid Bridge is an MCP server that connects AI agents to Android devices a
 
 ---
 
-> Note: Purpose-built tools return structured, minimal responses instead of raw XML dumps, keeping agent workflows fast and context consumption low, while keeping performance high.
-
----
+> Purpose-built tools return structured, minimal responses. No raw XML dumps, no wasted context — agents stay fast across long sessions.
 
 [![agent-droid-bridge MCP server](https://glama.ai/mcp/servers/Neverlow512/agent-droid-bridge/badges/card.svg?v=2)](https://glama.ai/mcp/servers/Neverlow512/agent-droid-bridge)
 
@@ -29,16 +27,38 @@ The demo above runs through a few straightforward tasks to show what a connected
 
 ## What it does
 
-- Exposes 14 core MCP tools covering screen capture, UI inspection, screen reading, element extraction, touch and swipe input, text entry, keycode events, app launching, arbitrary ADB commands, and device capability inspection
-- Extra tool packs extend the core toolset via opt-in config — `app_manager` is the first pack, adding 9 tools for package management, app control, APK extraction, permission management, and intent injection
-- Auto-detects the connected device when only one is present; presents a device list and requires the user to choose when multiple are connected
-- All commands parsed via `shlex` — no shell injection possible
+**Tools**
+- 14 built-in tools for screen capture, UI inspection, text reading, element extraction, touch and swipe input, text entry, keycode events, app launching, ADB commands, and device inspection
+- `app_manager` pack adds 9 tools for package management, app lifecycle, APK extraction, permissions, and intent injection. Load it with `ADB_EXTRA_TOOL_PACKS=app_manager`
+- Tool availability is reflected in the server's startup instructions. Agents receive an accurate catalog at connect time
+
+**Device handling**
+- Auto-detects a single connected device; prompts for selection when multiple devices are present
 - Runs over stdio, compatible with any MCP-capable AI client
-- Purpose-built screen reading and element extraction tools return structured, minimal responses — a fraction of the size of a raw XML hierarchy — keeping agent context lean across long automation runs
-- Two execution modes: `unrestricted` (default, with optional shell denylist) and `restricted` (allowlist-only — only explicitly permitted shell commands are allowed); set `ADB_EXECUTION_MODE=restricted` to enable
-- Set `ADB_ALLOW_SHELL=false` to block all `adb shell` commands entirely, regardless of mode
-- Add tool names to `tools.denied` in `adb_config.yaml` to hide specific MCP tools from the agent at server startup — all filtering enforced at the server level
-- Server instructions are automatically generated at startup and reflect the active tool set — agents receive a structured tool catalog at connect time, including any loaded extra tool packs
+- Structured responses instead of raw XML dumps, keeping agent context lean across long automation runs
+
+**Security**
+- Two execution modes: `unrestricted` (full ADB access, optional denylist) and `restricted` (allowlist-only, blocks everything not explicitly permitted)
+- Set `ADB_ALLOW_SHELL=false` to disable all shell commands regardless of mode
+- Hide specific tools from the agent with `ADB_DENIED_TOOLS`
+- All commands parsed via `shlex`. No shell injection possible
+
+**Observability**
+- Optional session recorder logs every tool call, ADB command, and security event to structured JSONL files. Enable with `MCP_LOG_ENABLED=true` and `MCP_LOG_DIR`
+
+## Use cases
+
+**Mobile QA and test automation**
+Automate UI flows across real devices and emulators without modifying the app or writing test code. Tap, swipe, type, read screen content, take screenshots — all from a natural language prompt.
+
+**App security research**
+Extract APKs, inspect declared permissions, fire arbitrary intents, and observe runtime behavior on screen. No instrumentation, no jailbreak required.
+
+**Dynamic analysis**
+Launch apps in controlled states, drive UI interactions, capture screen state at each step, and pull artifacts — all scriptable through an AI agent.
+
+**Development and debugging**
+Install builds, verify UI states, check app info, and run ADB commands without leaving your coding environment.
 
 ## Install
 
@@ -69,6 +89,8 @@ To verify the install: `uvx agent-droid-bridge --help`
       "env": {
         "ADB_EXECUTION_MODE": "unrestricted",
         "ADB_ALLOW_SHELL": "true",
+        "ADB_PATH": "adb",
+        "ADB_EXTRA_TOOL_PACKS": "",
         "MCP_LOG_ENABLED": "false",
         "MCP_LOG_DIR": "~/logs/agent-droid-bridge"
       }
@@ -79,9 +101,18 @@ To verify the install: `uvx agent-droid-bridge --help`
 
 To enable session logging, set `MCP_LOG_ENABLED` to `"true"` and update `MCP_LOG_DIR` to a writable path on your machine.
 
-1. Prompt your agent to use the `agent-droid-bridge` MCP tools
+| Variable | Default | Description |
+|---|---|---|
+| `ADB_EXECUTION_MODE` | `unrestricted` | Security mode. `unrestricted` allows all shell commands (with optional denylist); `restricted` allows only commands in `ADB_SHELL_ALLOWLIST`. |
+| `ADB_ALLOW_SHELL` | `true` | Set to `false` to block all `adb shell` commands regardless of execution mode. |
+| `ADB_PATH` | `adb` | Path to the ADB binary. Replace with a full path if `adb` is not on your system PATH (e.g. `C:\platform-tools\adb.exe` on Windows). |
+| `ADB_EXTRA_TOOL_PACKS` | *(empty)* | Comma-separated list of extra tool packs to load. Set to `app_manager` to enable 9 additional app management tools. |
+| `MCP_LOG_ENABLED` | `false` | Set to `true` to enable session logging. Requires `MCP_LOG_DIR`. |
+| `MCP_LOG_DIR` | *(none)* | Directory where session logs are written. Required when `MCP_LOG_ENABLED` is `true`. |
 
-Full setup guide: [docs/setup.md](docs/setup.md)
+4. Prompt your agent to use the `agent-droid-bridge` MCP tools
+
+Full setup guide and environment variable reference: [docs/setup.md](docs/setup.md)
 
 ## Tools
 
@@ -105,7 +136,7 @@ Full setup guide: [docs/setup.md](docs/setup.md)
 
 ### Extra tool packs
 
-Optional packs extend the core toolset and must be enabled in `adb_config.yaml`. See [docs/extra-tool-packs.md](docs/extra-tool-packs.md).
+Optional packs extend the core toolset. Enable them by setting `ADB_EXTRA_TOOL_PACKS` in your MCP client config. See [docs/extra-tool-packs.md](docs/extra-tool-packs.md).
 
 **app_manager**
 
@@ -128,9 +159,11 @@ Full parameter reference: [docs/tools.md](docs/tools.md)
 
 ## Configuration
 
-The server is configurable via `adb_config.yaml` and environment variables. Tuneable parameters include the ADB binary path, command timeouts, log level, execution mode, shell filtering rules, and tool visibility. Full reference: [docs/configuration.md](docs/configuration.md).
+Configure the server entirely from your MCP client's `env` block. No files to edit. The env block in the Quick Start above covers the most common settings. For the full reference including security filtering, tool visibility, and timeouts, see [docs/configuration.md](docs/configuration.md).
 
-Session recording is configured separately via `logging_config.yaml`. Enable it by setting `MCP_LOG_ENABLED=true` and `MCP_LOG_DIR` in your MCP client config. Full reference: [docs/logging.md](docs/logging.md).
+To use a YAML config file instead, set `ADB_CONFIG_SOURCE=yaml`. See [docs/configuration.md](docs/configuration.md) for details.
+
+Session recording is separate. Enable it with `MCP_LOG_ENABLED=true` and `MCP_LOG_DIR`. Full reference: [docs/logging.md](docs/logging.md).
 
 ## Documentation
 
@@ -139,9 +172,12 @@ Session recording is configured separately via `logging_config.yaml`. Enable it 
 | ---------------------------------------------- | --------------------------------------------------------- |
 | [docs/setup.md](docs/setup.md)                 | Prerequisites, installation, and MCP client configuration |
 | [docs/tools.md](docs/tools.md)                 | Full parameter reference for all tools                 |
-| [docs/configuration.md](docs/configuration.md) | Reference for `adb_config.yaml` and environment variables |
+| [docs/configuration.md](docs/configuration.md) | Reference for environment variables and `adb_config.yaml` |
 | [docs/logging.md](docs/logging.md)             | Session recorder — log files, levels, retention, and activation |
 | [docs/extra-tool-packs.md](docs/extra-tool-packs.md) | Extra tool packs — enabling packs, the pack contract, and writing your own |
+| [docs/troubleshooting.md](docs/troubleshooting.md) | Common setup issues and ADB problems |
+| [docs/workflows.md](docs/workflows.md)         | Common multi-tool workflows with examples |
+| [CHANGELOG.md](CHANGELOG.md)                     | Release history and version changes                       |
 
 
 ## Contributing

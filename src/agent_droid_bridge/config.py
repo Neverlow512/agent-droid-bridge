@@ -5,9 +5,10 @@ import os
 import re
 from importlib.resources import files as _resource_files
 from pathlib import Path
+from typing import Annotated
 
 import yaml
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, BeforeValidator, field_validator
 
 from .recorder.config import LoggingConfig
 
@@ -30,6 +31,17 @@ def _resolve_config_path() -> Path:
 CONFIG_PATH = _resolve_config_path()
 
 logger = logging.getLogger(__name__)
+
+
+def _split_comma_list(v: object) -> list[str]:
+    if isinstance(v, str):
+        if not v.strip():
+            return []
+        return [item.strip() for item in v.split(",") if item.strip()]
+    return v  # type: ignore[return-value]
+
+
+_CommaSplitList = Annotated[list[str], BeforeValidator(_split_comma_list)]
 
 
 class ADBConfig(BaseModel):
@@ -69,17 +81,17 @@ class ServerConfig(BaseModel):
 
 
 class SecurityConfig(BaseModel):
-    shell_command_allowlist: list[str] = []
-    shell_command_denylist: list[str] = []
+    shell_command_allowlist: _CommaSplitList = []
+    shell_command_denylist: _CommaSplitList = []
 
 
 class ToolsConfig(BaseModel):
-    denied: list[str] = []
+    denied: _CommaSplitList = []
 
 
 class ExtraToolPacksConfig(BaseModel):
     enabled: bool = False
-    packs: list[str] = []
+    packs: _CommaSplitList = []
 
 
 class Settings(BaseModel):
@@ -114,6 +126,51 @@ class Settings(BaseModel):
         raw["allow_shell"] = allow_shell_raw == "true"
         return cls.model_validate(raw)
 
+    @classmethod
+    def load_from_env(cls) -> Settings:
+        allow_shell_raw = os.environ.get("ADB_ALLOW_SHELL", "true").lower()
+        if allow_shell_raw not in {"true", "false"}:
+            raise ValueError(f"ADB_ALLOW_SHELL must be 'true' or 'false', got '{allow_shell_raw}'")
+
+        packs_raw = os.environ.get("ADB_EXTRA_TOOL_PACKS", "")
+        packs_list = _split_comma_list(packs_raw)
+
+        adb_raw: dict[str, object] = {}
+        _adb_env_map = {
+            "ADB_PATH": "path",
+            "ADB_COMMAND_TIMEOUT": "command_timeout",
+            "ADB_SCREENSHOT_TIMEOUT": "screenshot_timeout",
+            "ADB_UI_CHANGE_TIMEOUT": "ui_change_timeout",
+            "ADB_AAPT_TIMEOUT": "aapt_timeout",
+            "ADB_UI_CHANGE_POLL_INTERVAL": "ui_change_poll_interval",
+        }
+        for env_key, field_name in _adb_env_map.items():
+            if (val := os.environ.get(env_key)) is not None:
+                adb_raw[field_name] = val
+
+        server_raw: dict[str, object] = {}
+        if (log_level := os.environ.get("ADB_LOG_LEVEL")) is not None:
+            server_raw["log_level"] = log_level
+
+        raw: dict[str, object] = {
+            "adb": adb_raw,
+            "server": server_raw,
+            "security": {
+                "shell_command_allowlist": os.environ.get("ADB_SHELL_ALLOWLIST", ""),
+                "shell_command_denylist": os.environ.get("ADB_SHELL_DENYLIST", ""),
+            },
+            "tools": {
+                "denied": os.environ.get("ADB_DENIED_TOOLS", ""),
+            },
+            "extra_tool_packs": {
+                "enabled": bool(packs_list),
+                "packs": packs_list,
+            },
+            "execution_mode": os.environ.get("ADB_EXECUTION_MODE", "unrestricted"),
+            "allow_shell": allow_shell_raw == "true",
+        }
+        return cls.model_validate(raw)
+
 
 _settings: Settings | None = None
 
@@ -121,7 +178,12 @@ _settings: Settings | None = None
 def get_settings() -> Settings:
     global _settings
     if _settings is None:
-        _settings = Settings.load()
+        source = os.environ.get("ADB_CONFIG_SOURCE", "env").lower()
+        logger.info("config source: %s", source)
+        if source == "yaml":
+            _settings = Settings.load()
+        else:
+            _settings = Settings.load_from_env()
     return _settings
 
 

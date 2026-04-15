@@ -67,7 +67,7 @@ Example `env` block (Cursor):
 "env": {
   "ADB_EXECUTION_MODE": "unrestricted",
   "ADB_ALLOW_SHELL": "true",
-  "MCP_LOG_ENABLED": "false",
+  "MCP_LOG_ENABLED": "true",
   "MCP_LOG_DIR": "/home/youruser/logs/agent-droid-bridge"
 }
 ```

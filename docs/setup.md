@@ -70,6 +70,8 @@ Add to `~/.cursor/mcp.json` under the `mcpServers` key:
       "env": {
         "ADB_EXECUTION_MODE": "unrestricted",
         "ADB_ALLOW_SHELL": "true",
+        "ADB_PATH": "adb",
+        "ADB_EXTRA_TOOL_PACKS": "",
         "MCP_LOG_ENABLED": "false",
         "MCP_LOG_DIR": "~/logs/agent-droid-bridge"
       }
@@ -91,6 +93,8 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
       "env": {
         "ADB_EXECUTION_MODE": "unrestricted",
         "ADB_ALLOW_SHELL": "true",
+        "ADB_PATH": "adb",
+        "ADB_EXTRA_TOOL_PACKS": "",
         "MCP_LOG_ENABLED": "false",
         "MCP_LOG_DIR": "~/logs/agent-droid-bridge"
       }
@@ -114,6 +118,8 @@ Add to your workspace or user `settings.json` under the `mcp.servers` key:
         "env": {
           "ADB_EXECUTION_MODE": "unrestricted",
           "ADB_ALLOW_SHELL": "true",
+          "ADB_PATH": "adb",
+          "ADB_EXTRA_TOOL_PACKS": "",
           "MCP_LOG_ENABLED": "false",
           "MCP_LOG_DIR": "~/logs/agent-droid-bridge"
         }
@@ -134,6 +140,8 @@ If running from a local clone instead of `uvx`, replace `command` and `args` wit
   "PYTHONPATH": "/absolute/path/to/agent-droid-bridge/src",
   "ADB_EXECUTION_MODE": "unrestricted",
   "ADB_ALLOW_SHELL": "true",
+  "ADB_PATH": "adb",
+  "ADB_EXTRA_TOOL_PACKS": "",
   "MCP_LOG_ENABLED": "false",
   "MCP_LOG_DIR": "~/logs/agent-droid-bridge"
 }
@@ -141,15 +149,51 @@ If running from a local clone instead of `uvx`, replace `command` and `args` wit
 
 ## Optional environment variables
 
-| Variable | Values | Default | Description |
-|---|---|---|---|
-| `ADB_EXECUTION_MODE` | `unrestricted`, `restricted` | `unrestricted` | In `restricted` mode only commands in the allowlist are permitted |
-| `ADB_ALLOW_SHELL` | `true`, `false` | `true` | Set to `false` to block all `adb shell` commands |
-| `ADB_CONFIG_PATH` | Absolute path | bundled default | Path to a custom `adb_config.yaml` |
-| `MCP_LOG_ENABLED` | `true`, `false` | `false` | Enables session logging. Requires `MCP_LOG_DIR`. |
-| `MCP_LOG_DIR` | Absolute path | — | Directory where session logs are written. |
+**Core behavior**
 
-See [configuration.md](configuration.md) for the full YAML reference.
+| Variable | Default | Description |
+|---|---|---|
+| `ADB_EXECUTION_MODE` | `unrestricted` | Security mode. `unrestricted` allows all shell commands (with optional denylist); `restricted` allows only commands in `ADB_SHELL_ALLOWLIST`. |
+| `ADB_ALLOW_SHELL` | `true` | Set to `false` to block all `adb shell` commands regardless of execution mode. |
+| `ADB_PATH` | `adb` | Path to the ADB binary. Use a full path if `adb` is not on your system PATH (e.g. `C:\platform-tools\adb.exe` on Windows, `/opt/homebrew/bin/adb` on macOS with Homebrew). |
+| `ADB_LOG_LEVEL` | `INFO` | Server process log level. Accepted: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`. |
+
+**Tools**
+
+| Variable | Default | Description |
+|---|---|---|
+| `ADB_EXTRA_TOOL_PACKS` | *(empty)* | Comma-separated list of extra tool packs to load at startup. Available: `app_manager`. Example: `app_manager`. |
+| `ADB_DENIED_TOOLS` | *(empty)* | Comma-separated list of tool names to hide from the agent at startup. Example: `execute_adb_command,get_ui_hierarchy`. |
+| `ADB_SHELL_ALLOWLIST` | *(empty)* | Comma-separated list of shell commands permitted in `restricted` mode. Empty = block all. Example: `dumpsys,pm,am`. |
+| `ADB_SHELL_DENYLIST` | *(empty)* | Comma-separated list of shell commands blocked in `unrestricted` mode (basename-matched). Example: `rm,reboot,su`. |
+
+**Config source**
+
+| Variable | Default | Description |
+|---|---|---|
+| `ADB_CONFIG_SOURCE` | `env` | Set to `yaml` to load configuration from `adb_config.yaml` instead of environment variables. Use `ADB_CONFIG_PATH` to point to a custom YAML file when in `yaml` mode. |
+| `ADB_CONFIG_PATH` | *(bundled default)* | Absolute path to a custom `adb_config.yaml`. Only used when `ADB_CONFIG_SOURCE=yaml`. |
+
+**Logging**
+
+| Variable | Default | Description |
+|---|---|---|
+| `MCP_LOG_ENABLED` | `false` | Set to `true` to enable session logging. Requires `MCP_LOG_DIR`. |
+| `MCP_LOG_DIR` | *(none)* | Absolute path to the directory where session logs are written. Required when `MCP_LOG_ENABLED` is `true`. |
+
+**Timeouts (advanced)**
+
+| Variable | Default | Description |
+|---|---|---|
+| `ADB_COMMAND_TIMEOUT` | `30` | Maximum seconds to wait for any ADB command. |
+| `ADB_SCREENSHOT_TIMEOUT` | `60` | Maximum seconds to wait for a screenshot capture. |
+| `ADB_UI_CHANGE_TIMEOUT` | `10` | Default timeout for `detect_ui_change`. |
+| `ADB_UI_CHANGE_POLL_INTERVAL` | `0.5` | How often (in seconds) `detect_ui_change` polls the UI hierarchy. |
+| `ADB_AAPT_TIMEOUT` | `10` | Maximum seconds to wait for `aapt dump badging` (used by `app_manager` pack). |
+
+For the full YAML configuration reference, see [configuration.md](configuration.md).
+
+For common setup issues, see [docs/troubleshooting.md](troubleshooting.md).
 
 ## Verification
 

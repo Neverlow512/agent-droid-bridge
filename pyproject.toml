@@ -81,7 +81,8 @@ name = "cz_conventional_commits"
 version = "0.5.1"
 version_files = [
     "pyproject.toml:version = \"",
-    "src/agent_droid_bridge/__init__.py:__version__ = \""
+    "src/agent_droid_bridge/__init__.py:__version__ = \"",
+    "server.json:\"version\": \""
 ]
 tag_format = "v$version"
 update_changelog_on_bump = false

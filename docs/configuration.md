@@ -1,6 +1,6 @@
 # Configuration
 
-The server loads its configuration from a YAML file on startup. Source installs read `configs/adb_config.yaml` at the project root directly. Installed users (`uvx` / `pip`) receive a bundled default copy. Set `ADB_CONFIG_PATH` to an absolute path to override both. All keys are optional — omitting a key leaves the default in place.
+By default, the server loads all configuration from environment variables set in your MCP client's `env` block (`ADB_CONFIG_SOURCE=env`). No file editing is required. Set `ADB_CONFIG_SOURCE=yaml` to switch to legacy YAML-based configuration — the server will then read from `configs/adb_config.yaml`. Source installs read the file at the project root; installed users (`uvx` / `pip`) receive a bundled default. Set `ADB_CONFIG_PATH` to an absolute path to override the YAML file location. All keys are optional — omitting a key leaves the default in place.
 
 ## Configuration reference
 
@@ -62,18 +62,34 @@ See [logging.md](logging.md) for a full explanation of session structure, log le
 
 ## Environment variables
 
-These are set in your MCP client's `env` block (not in `adb_config.yaml`) and control the security behavior of `execute_adb_command`.
+All environment variables are set in your MCP client's `env` block. For the full reference grouped by category, see [setup.md](setup.md#optional-environment-variables).
 
-| Variable | Values | Default | Description |
-|---|---|---|---|
-| `ADB_EXECUTION_MODE` | `unrestricted` / `restricted` | `unrestricted` | In `restricted` mode, shell commands must match `security.shell_command_allowlist` and top-level ADB commands (`use_shell: false`) are blocked entirely. |
-| `ADB_ALLOW_SHELL` | `true` / `false` | `true` | When `false`, `execute_adb_command` with `use_shell: true` is blocked entirely, regardless of execution mode. |
-| `ADB_CONFIG_PATH` | absolute path | — | Path to a custom config file. Overrides both the project root copy and the bundled default. |
-| `MCP_LOG_ENABLED` | `true` / `false` | `false` | Enables the session recorder. Requires `MCP_LOG_DIR` to be set. |
-| `MCP_LOG_DIR` | absolute path | — | Directory where logs are written. Required when `MCP_LOG_ENABLED` is `true`. |
+**Key variables for env mode (default):**
+
+| Variable | Default | Description |
+|---|---|---|
+| `ADB_CONFIG_SOURCE` | `env` | `env` loads from environment variables (default). `yaml` loads from `adb_config.yaml`. |
+| `ADB_EXECUTION_MODE` | `unrestricted` | `unrestricted` = denylist-based; `restricted` = allowlist-only. |
+| `ADB_ALLOW_SHELL` | `true` | `false` blocks all `adb shell` commands. |
+| `ADB_PATH` | `adb` | ADB binary path. Use full path if not on system PATH. |
+| `ADB_EXTRA_TOOL_PACKS` | *(empty)* | Comma-separated pack names. Example: `app_manager`. |
+| `ADB_DENIED_TOOLS` | *(empty)* | Comma-separated tool names to hide at startup. |
+| `ADB_SHELL_ALLOWLIST` | *(empty)* | Allowed shell commands in `restricted` mode. |
+| `ADB_SHELL_DENYLIST` | *(empty)* | Blocked shell commands in `unrestricted` mode. |
+| `ADB_COMMAND_TIMEOUT` | `30` | ADB command timeout in seconds. |
+| `ADB_SCREENSHOT_TIMEOUT` | `60` | Screenshot timeout in seconds. |
+| `ADB_UI_CHANGE_TIMEOUT` | `10` | `detect_ui_change` timeout in seconds. |
+| `ADB_UI_CHANGE_POLL_INTERVAL` | `0.5` | `detect_ui_change` poll interval in seconds. |
+| `ADB_AAPT_TIMEOUT` | `10` | `aapt` timeout in seconds (`app_manager` pack). |
+| `ADB_LOG_LEVEL` | `INFO` | Server log level. Accepted: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`. |
+| `ADB_CONFIG_PATH` | *(bundled)* | Custom YAML file path. Only used when `ADB_CONFIG_SOURCE=yaml`. |
+| `MCP_LOG_ENABLED` | `false` | Enables the session recorder. |
+| `MCP_LOG_DIR` | *(none)* | Log directory. Required when `MCP_LOG_ENABLED=true`. |
 
 Internal tools (`get_ui_hierarchy`, `take_screenshot`, `tap_screen`, etc.) are not affected by `ADB_EXECUTION_MODE` or `ADB_ALLOW_SHELL`.
 
 ## Applying changes
 
 The config file is loaded once at server startup and cached for the lifetime of the process. After editing the config file, restart the server for changes to take effect. If the file does not exist, the server starts with all defaults and logs a warning.
+
+In `env` mode, configuration changes take effect on the next server restart — no file editing needed. In `yaml` mode, edit `adb_config.yaml` and restart the server.

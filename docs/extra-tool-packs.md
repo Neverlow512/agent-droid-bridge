@@ -1,12 +1,26 @@
 # Extra Tool Packs
 
-The core server ships with 14 built-in tools. Extra tool packs are optional modules that add domain-specific tools on top of those — without touching the core. They are disabled by default and loaded at startup when enabled in `adb_config.yaml`.
+The core server ships with 14 built-in tools. Extra tool packs are optional modules that add domain-specific tools on top of those — without touching the core. They are disabled by default and loaded at startup when enabled via the `ADB_EXTRA_TOOL_PACKS` environment variable or in `adb_config.yaml`.
 
 Use a pack when you need capabilities that go beyond basic screen interaction, input, and ADB commands. The `app_manager` pack, for example, adds package management, app lifecycle control, APK extraction, and intent injection — functionality that would clutter the core toolset for users who don't need it.
 
 ## Enabling a pack
 
-In `adb_config.yaml`, set `enabled` to `true` and list the pack names in `packs`:
+### Via environment variable (recommended)
+
+Set `ADB_EXTRA_TOOL_PACKS` in your MCP client's `env` block to a comma-separated list of pack names:
+
+```json
+"env": {
+  "ADB_EXTRA_TOOL_PACKS": "app_manager"
+}
+```
+
+Restart the server after updating the config.
+
+### Via YAML (legacy)
+
+Requires `ADB_CONFIG_SOURCE=yaml`. In `adb_config.yaml`, set `enabled` to `true` and list the pack names in `packs`:
 
 ```yaml
 extra_tool_packs:
@@ -14,7 +28,7 @@ extra_tool_packs:
   packs: ["app_manager"]
 ```
 
-Restart the server after editing the config. See [configuration.md](configuration.md) for the full key reference.
+Restart the server after editing the file. See [configuration.md](configuration.md) for the full key reference.
 
 ## Available packs
 
@@ -56,4 +70,4 @@ async def register(mcp: FastMCP, adb: ADBService) -> None:
         return message
 ```
 
-To enable the pack during development, set `enabled: true` and add the pack name to `packs` in `adb_config.yaml`, then restart the server. See [CONTRIBUTING.md](../CONTRIBUTING.md) for test expectations and code standards.
+To enable the pack during development, set `ADB_EXTRA_TOOL_PACKS=<pack_name>` in your MCP client config, or set `enabled: true` and add the pack name to `packs` in `adb_config.yaml` if using `ADB_CONFIG_SOURCE=yaml`. Restart the server after either change. See [CONTRIBUTING.md](../CONTRIBUTING.md) for test expectations and code standards.

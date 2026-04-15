@@ -1,7 +1,15 @@
 import pytest
 from pydantic import ValidationError
 
-from agent_droid_bridge.config import ADBConfig, SecurityConfig, ServerConfig, Settings
+import agent_droid_bridge.config as _config_module
+from agent_droid_bridge.config import (
+    ADBConfig,
+    SecurityConfig,
+    ServerConfig,
+    Settings,
+    _split_comma_list,
+    get_settings,
+)
 
 
 class TestADBConfig:
@@ -368,3 +376,170 @@ class TestSecurityConfigYAMLLoading:
         s = Settings.load(path=cfg_file)
         assert s.security.shell_command_allowlist == []
         assert s.security.shell_command_denylist == []
+
+
+class TestSplitCommaList:
+    def test_empty_string_returns_empty_list(self) -> None:
+        assert _split_comma_list("") == []
+
+    def test_whitespace_only_returns_empty_list(self) -> None:
+        assert _split_comma_list("   ") == []
+
+    def test_single_item(self) -> None:
+        assert _split_comma_list("app_manager") == ["app_manager"]
+
+    def test_multiple_items(self) -> None:
+        assert _split_comma_list("a,b,c") == ["a", "b", "c"]
+
+    def test_whitespace_around_items_stripped(self) -> None:
+        assert _split_comma_list(" a , b , c ") == ["a", "b", "c"]
+
+    def test_whitespace_only_items_excluded(self) -> None:
+        assert _split_comma_list("a,,b") == ["a", "b"]
+
+    def test_list_passed_through_unchanged(self) -> None:
+        assert _split_comma_list(["x", "y"]) == ["x", "y"]
+
+
+class TestLoadFromEnv:
+    def test_no_env_vars_uses_defaults(self, monkeypatch) -> None:
+        for var in (
+            "ADB_ALLOW_SHELL", "ADB_EXECUTION_MODE", "ADB_EXTRA_TOOL_PACKS",
+            "ADB_PATH", "ADB_COMMAND_TIMEOUT", "ADB_SCREENSHOT_TIMEOUT",
+            "ADB_UI_CHANGE_TIMEOUT", "ADB_AAPT_TIMEOUT", "ADB_UI_CHANGE_POLL_INTERVAL",
+            "ADB_LOG_LEVEL", "ADB_SHELL_ALLOWLIST", "ADB_SHELL_DENYLIST", "ADB_DENIED_TOOLS",
+        ):
+            monkeypatch.delenv(var, raising=False)
+        s = Settings.load_from_env()
+        assert s.adb.path == "adb"
+        assert s.adb.command_timeout == 30
+        assert s.server.log_level == "INFO"
+        assert s.execution_mode == "unrestricted"
+        assert s.allow_shell is True
+        assert s.security.shell_command_allowlist == []
+        assert s.security.shell_command_denylist == []
+        assert s.tools.denied == []
+        assert s.extra_tool_packs.enabled is False
+        assert s.extra_tool_packs.packs == []
+
+    def test_execution_mode_restricted(self, monkeypatch) -> None:
+        monkeypatch.setenv("ADB_EXECUTION_MODE", "restricted")
+        s = Settings.load_from_env()
+        assert s.execution_mode == "restricted"
+
+    def test_allow_shell_false(self, monkeypatch) -> None:
+        monkeypatch.setenv("ADB_ALLOW_SHELL", "false")
+        s = Settings.load_from_env()
+        assert s.allow_shell is False
+
+    def test_allow_shell_invalid_raises(self, monkeypatch) -> None:
+        monkeypatch.setenv("ADB_ALLOW_SHELL", "invalid")
+        with pytest.raises(ValueError, match="ADB_ALLOW_SHELL must be"):
+            Settings.load_from_env()
+
+    def test_shell_allowlist_from_env(self, monkeypatch) -> None:
+        monkeypatch.setenv("ADB_SHELL_ALLOWLIST", "dumpsys,pm,am")
+        s = Settings.load_from_env()
+        assert s.security.shell_command_allowlist == ["dumpsys", "pm", "am"]
+
+    def test_shell_allowlist_empty_env(self, monkeypatch) -> None:
+        monkeypatch.setenv("ADB_SHELL_ALLOWLIST", "")
+        s = Settings.load_from_env()
+        assert s.security.shell_command_allowlist == []
+
+    def test_shell_denylist_from_env(self, monkeypatch) -> None:
+        monkeypatch.setenv("ADB_SHELL_DENYLIST", "rm,reboot")
+        s = Settings.load_from_env()
+        assert s.security.shell_command_denylist == ["rm", "reboot"]
+
+    def test_denied_tools_from_env(self, monkeypatch) -> None:
+        monkeypatch.setenv("ADB_DENIED_TOOLS", "execute_adb_command")
+        s = Settings.load_from_env()
+        assert s.tools.denied == ["execute_adb_command"]
+
+    def test_extra_tool_packs_single(self, monkeypatch) -> None:
+        monkeypatch.setenv("ADB_EXTRA_TOOL_PACKS", "app_manager")
+        s = Settings.load_from_env()
+        assert s.extra_tool_packs.packs == ["app_manager"]
+        assert s.extra_tool_packs.enabled is True
+
+    def test_extra_tool_packs_empty(self, monkeypatch) -> None:
+        monkeypatch.setenv("ADB_EXTRA_TOOL_PACKS", "")
+        s = Settings.load_from_env()
+        assert s.extra_tool_packs.packs == []
+        assert s.extra_tool_packs.enabled is False
+
+    def test_extra_tool_packs_multiple(self, monkeypatch) -> None:
+        monkeypatch.setenv("ADB_EXTRA_TOOL_PACKS", "app_manager,other_pack")
+        s = Settings.load_from_env()
+        assert "app_manager" in s.extra_tool_packs.packs
+        assert "other_pack" in s.extra_tool_packs.packs
+        assert s.extra_tool_packs.enabled is True
+
+    def test_log_level_from_env(self, monkeypatch) -> None:
+        monkeypatch.setenv("ADB_LOG_LEVEL", "DEBUG")
+        s = Settings.load_from_env()
+        assert s.server.log_level == "DEBUG"
+
+    def test_adb_path_from_env(self, monkeypatch) -> None:
+        monkeypatch.setenv("ADB_PATH", "/usr/local/bin/adb")
+        s = Settings.load_from_env()
+        assert s.adb.path == "/usr/local/bin/adb"
+
+    def test_command_timeout_from_env(self, monkeypatch) -> None:
+        monkeypatch.setenv("ADB_COMMAND_TIMEOUT", "60")
+        s = Settings.load_from_env()
+        assert s.adb.command_timeout == 60
+
+    def test_screenshot_timeout_from_env(self, monkeypatch) -> None:
+        monkeypatch.setenv("ADB_SCREENSHOT_TIMEOUT", "90")
+        s = Settings.load_from_env()
+        assert s.adb.screenshot_timeout == 90
+
+    def test_ui_change_timeout_from_env(self, monkeypatch) -> None:
+        monkeypatch.setenv("ADB_UI_CHANGE_TIMEOUT", "15")
+        s = Settings.load_from_env()
+        assert s.adb.ui_change_timeout == 15
+
+    def test_ui_change_poll_interval_from_env(self, monkeypatch) -> None:
+        monkeypatch.setenv("ADB_UI_CHANGE_POLL_INTERVAL", "1.0")
+        s = Settings.load_from_env()
+        assert s.adb.ui_change_poll_interval == 1.0
+
+    def test_aapt_timeout_from_env(self, monkeypatch) -> None:
+        monkeypatch.setenv("ADB_AAPT_TIMEOUT", "20")
+        s = Settings.load_from_env()
+        assert s.adb.aapt_timeout == 20
+
+
+class TestGetSettingsDispatch:
+    def test_no_source_env_uses_env_loader(self, monkeypatch) -> None:
+        monkeypatch.setattr(_config_module, "_settings", None)
+        monkeypatch.delenv("ADB_CONFIG_SOURCE", raising=False)
+        s = get_settings()
+        assert isinstance(s, Settings)
+
+    def test_source_env_uses_env_loader(self, monkeypatch) -> None:
+        monkeypatch.setattr(_config_module, "_settings", None)
+        monkeypatch.setenv("ADB_CONFIG_SOURCE", "env")
+        s = get_settings()
+        assert isinstance(s, Settings)
+
+    def test_source_yaml_uses_yaml_loader(self, monkeypatch) -> None:
+        monkeypatch.setattr(_config_module, "_settings", None)
+        monkeypatch.setenv("ADB_CONFIG_SOURCE", "yaml")
+        s = get_settings()
+        assert isinstance(s, Settings)
+
+    def test_source_yaml_uppercase_uses_yaml_loader(self, monkeypatch) -> None:
+        monkeypatch.setattr(_config_module, "_settings", None)
+        monkeypatch.setenv("ADB_CONFIG_SOURCE", "YAML")
+        s = get_settings()
+        assert isinstance(s, Settings)
+
+    def test_caching_returns_same_object(self, monkeypatch) -> None:
+        monkeypatch.setattr(_config_module, "_settings", None)
+        monkeypatch.delenv("ADB_CONFIG_SOURCE", raising=False)
+        s1 = get_settings()
+        s2 = get_settings()
+        assert s1 is s2
